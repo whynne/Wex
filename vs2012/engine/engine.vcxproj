@@ -39,12 +39,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\Whynne\Documents\GitHub\wex\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Whynne\Documents\GitHub\wex\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Whynne\Documents\GitHub\wex\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Whynne\Documents\GitHub\wex\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>../../include;$(IncludePath)</IncludePath>
+    <LibraryPath>../../lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -73,7 +73,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SDL.lib;SDLmain.lib;libjson.lib;OpenGL32.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL.lib;SDLmain.lib;libjson.lib;OpenGL32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
