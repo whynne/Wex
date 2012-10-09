@@ -105,36 +105,20 @@ namespace graphics
 	public:
 		Sprite _charactersprites[256];
 		BitmapFont();                          // default constructor
-		BitmapFont(TexData& texture);          // generates font on construction
-		void buildFont(TexData& texture);      // generates font
+		BitmapFont(Texture& texture);          // generates font on construction
+		void buildFont(Texture& texture);      // generates font
 	};
 
-	class TexData
+	class Texture
 	{
 	private:
-	    int texid;
-	    GLfloat height;
-	    GLfloat width;
+	    GLuint  _texid;
+	    GLfloat _height;
+	    GLfloat _width;
 	public:
-	    TexData createEmptyTexture(int height,int width);
-	};
+	    void createEmptyTexture(int height,int width);
+		bool loadUncompressedTGA(char *filename,std::ifstream &texturestream);
 
-	class TGA: public Texture
-	{
-	private:
-		
-	    //Our actual loading functions.  Our public function will determine which of these to use
-		bool LoadUncompressedTGA(char *filename,std::ifstream &texturestream);
-		bool LoadCompressedTGA(char *filename,std::ifstream &texturestream);
-	
-	public:
-		//Our public loading function
-		TGA();
-		
-	    TexData  loadImage(char *filename);
-	    
-	    GLubyte* getImageData(){return imagedata;};
-	    TexData  getTexData();
 	};
 
 	class SpriteBatch

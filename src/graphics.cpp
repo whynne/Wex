@@ -197,17 +197,7 @@ void BitmapFont::buildFont(TexData& texture)
 Texture Definitions
 =====================*/
 
-TGA::TGA()
-{
-
-}
-
-bool TGA::LoadCompressedTGA(char *filename,std::ifstream &texturestream)
-{
-	return false;
-}
-
-bool TGA::LoadUncompressedTGA(char *filename,std::ifstream &texturestream)
+bool Texture::loadUncompressedTGA(char *filename,std::ifstream &texturestream)
 {
 	//Headers for the tga texture
 	GLubyte header[12];
@@ -219,9 +209,6 @@ bool TGA::LoadUncompressedTGA(char *filename,std::ifstream &texturestream)
 
 	GLubyte* imagedata;		        //Pointer for storing image data
 	GLuint bpp;                     //Bits per pixel
-	GLuint width;                   //Width of the entire image
-	GLuint height;                  //Height of the entire image
-	GLuint texID;                   //Texture ID for use with glBindTexture
 	GLuint type;                    //Data stored in * imagedata (GL_RGB or GL_RGBA)
 	GLuint bytesperpixel;           //BYTES per pixel
 	GLuint imagesize;               //Size in bytes of texture
@@ -282,11 +269,12 @@ bool TGA::LoadUncompressedTGA(char *filename,std::ifstream &texturestream)
 	return true;
 }
 
-TexData Texture::createEmptyTexture(int height,int width)
+void Texture::createEmptyTexture(int height,int width)
 {
+	GLubyte* imagedata;		        //Pointer for storing image data
 	imagedata = new GLubyte[height*width*4];
-	glGenTextures(1, &texID);													// Generate OpenGL texture IDs
-	glBindTexture(GL_TEXTURE_2D, texID);										
+	glGenTextures(1, &_texid);													// Generate OpenGL texture IDs
+	glBindTexture(GL_TEXTURE_2D, _texid);										
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);				// Set texture parameters
@@ -301,22 +289,9 @@ TexData Texture::createEmptyTexture(int height,int width)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagedata);
 	delete imagedata;
-	texdata.height = height;
-	texdata.width = width;
-	texdata.texid = texID;
-
-	cout << "Created " << width << "x" << height << " empty texture with id " << texID << endl;
-	return texdata;
-}
-
-
-TexData TGA::loadImage(char *filename)
-{
-	texdata.texid = texID;
-	texdata.width = width;
-	texdata.height = height;
-	cout << texID << "Texture " << filename <<  " successfully loaded with id " << texdata.texid << endl;
-	return texdata;
+	_height = height;
+	_width = width;
+	cout << "Created " << width << "x" << height << " empty texture with id " << _texid << endl;
 }
 
 
