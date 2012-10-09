@@ -209,6 +209,31 @@ bool TGA::LoadCompressedTGA(char *filename,std::ifstream &texturestream)
 
 bool TGA::LoadUncompressedTGA(char *filename,std::ifstream &texturestream)
 {
+	//Headers for the tga texture
+	GLubyte header[12];
+	GLubyte header2[6];
+	
+	//These are byte arrays to be compared to the header of our TGA file
+	GLubyte uncompressedheader[12];
+	GLubyte compressedheader[12];
+
+	GLubyte* imagedata;		        //Pointer for storing image data
+	GLuint bpp;                     //Bits per pixel
+	GLuint width;                   //Width of the entire image
+	GLuint height;                  //Height of the entire image
+	GLuint texID;                   //Texture ID for use with glBindTexture
+	GLuint type;                    //Data stored in * imagedata (GL_RGB or GL_RGBA)
+	GLuint bytesperpixel;           //BYTES per pixel
+	GLuint imagesize;               //Size in bytes of texture
+
+	ifstream texturestream;
+	texturestream.open(filename,ios::binary);
+	if(texturestream.good())
+		cout << "Successfully opened" << endl;
+	else
+		cout << "FAILED TO OPEN" << endl;
+	texturestream.read((char*)header,sizeof(header));
+
 	texturestream.read((char*)header2, sizeof(header2));				//read 6 bytes into the file to get important information
 	width  = (GLuint)header2[1] * 256 + (GLuint)header2[0];				//read and calculate width and save
 	height = (GLuint)header2[3] * 256 + (GLuint)header2[2];				//read and calculate height and save
@@ -287,15 +312,6 @@ TexData Texture::createEmptyTexture(int height,int width)
 
 TexData TGA::loadImage(char *filename)
 {
-	ifstream texturestream;
-	texturestream.open(filename,ios::binary);
-	if(texturestream.good())
-		cout << "SUCCESSFULLY OPENED" << endl;
-	else
-		cout << "FAILED TO OPEN" << endl;
-	texturestream.read((char*)header,sizeof(header));
-	LoadUncompressedTGA(filename,texturestream); 
-
 	texdata.texid = texID;
 	texdata.width = width;
 	texdata.height = height;

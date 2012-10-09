@@ -46,14 +46,6 @@ namespace graphics
 		ColorRGBA(float r, float g, float b, float a);
 	};
 
-	struct TexData
-	{
-	public:
-	  int texid;
-	  GLfloat height;
-	  GLfloat width;
-	};
-
     class Sprite
     {
     private:
@@ -117,34 +109,19 @@ namespace graphics
 		void buildFont(TexData& texture);      // generates font
 	};
 
-	class Texture
+	class TexData
 	{
-	protected:
-		GLubyte* imagedata;		        //Pointer for storing image data
-		GLuint bpp;                     //Bits per pixel
-		GLuint width;                   //Width of the entire image
-		GLuint height;                  //Height of the entire image
-		GLuint texID;                   //Texture ID for use with glBindTexture
-		GLuint type;                    //Data stored in * imagedata (GL_RGB or GL_RGBA)
-		GLuint bytesperpixel;           //BYTES per pixel
-		GLuint imagesize;               //Size in bytes of texture
-
-		TexData texdata;
+	private:
+	    int texid;
+	    GLfloat height;
+	    GLfloat width;
 	public:
-		TexData createEmptyTexture(int height,int width);
+	    TexData createEmptyTexture(int height,int width);
 	};
 
 	class TGA: public Texture
 	{
 	private:
-		//Headers for the tga texture
-		GLubyte header[12];
-		GLubyte header2[6];
-		
-	    //These are byte arrays to be compared to the header of our TGA file
-		GLubyte uncompressedheader[12];
-		GLubyte compressedheader[12];
-	
 		
 	    //Our actual loading functions.  Our public function will determine which of these to use
 		bool LoadUncompressedTGA(char *filename,std::ifstream &texturestream);

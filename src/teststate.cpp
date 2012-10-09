@@ -4,7 +4,7 @@
 
 void TestState::init(Controller &maincontrol)
 {
-	
+	testconsole.print("Hello, world!");
 }
 
 void TestState::cleanup()
@@ -34,7 +34,7 @@ void TestState::update(double t,double dt)
 
 void TestState::draw()
 {
-
+	testconsole.draw();
 }
 
 TestState::TestState()

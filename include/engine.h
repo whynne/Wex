@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SDL\SDL.h"
-#include "EngineState.h"
+#include "enginestate.h"
 #include "graphics.h"
 #include "timer.h"
 #include "controller.h"

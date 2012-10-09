@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "EngineState.h"
+#include "enginestate.h"
 #include "console.h"
 #include "vec.h"
 
@@ -12,7 +12,7 @@ private:
 	
 
 public:
-	//
+	Console testconsole;
 	void init(Controller &maincontrol);
 	void cleanup();
 	void pause();
