@@ -46,13 +46,30 @@ namespace graphics
 		ColorRGBA(float r, float g, float b, float a);
 	};
 
+	class Texture
+	{
+	private:
+	    GLuint texid;
+		GLuint height;
+	    GLuint width;
+	public:
+		GLuint getHeight();
+		GLuint getWidth();
+		GLuint  getTexId();
+	    void createEmptyTexture(int height,int width);
+		bool loadUncompressedTGA(char *filename);
+		Texture();
+
+	};
+
     class Sprite
     {
     private:
     
-      TexData*   texture;
+      Texture*   texture;
       int        maxclips;
-      int        clipheight,clipwidth;
+      int        clipheight;
+	  int        clipwidth;
       TexCoord** texcoords;
     
     public:
@@ -60,10 +77,10 @@ namespace graphics
       TexCoord* getTexCoords(int frame);
       void      setClip(int frame,GLfloat x,GLfloat y);
       int       getMaxClips(){return maxclips;};
-      int       getTexID(){return texture->texid;};
+      Texture   getTexture(){return *texture;};
     
       Sprite();
-      Sprite(TexData &mytexture,int frames,int height,int width);
+      Sprite(Texture &mytexture,int frames,int height,int width);
     
     };
 
@@ -87,7 +104,7 @@ namespace graphics
 	  TexCoord* getCurrentTexCoords(){return currentsprite->getTexCoords(currentframe);};
 	  Point3d* getVertices(){return _vertices;};
 	  ColorRGBA* getColor(){return _color;};
-	  int getTexID(){return currentsprite->getTexID();};
+	  int getTexID(){return currentsprite->getTexture().getTexId();};
 	  
 	  void setClipDimensions(double height, double width);
 	  
@@ -107,18 +124,6 @@ namespace graphics
 		BitmapFont();                          // default constructor
 		BitmapFont(Texture& texture);          // generates font on construction
 		void buildFont(Texture& texture);      // generates font
-	};
-
-	class Texture
-	{
-	private:
-	    GLuint  _texid;
-	    GLfloat _height;
-	    GLfloat _width;
-	public:
-	    void createEmptyTexture(int height,int width);
-		bool loadUncompressedTGA(char *filename,std::ifstream &texturestream);
-
 	};
 
 	class SpriteBatch

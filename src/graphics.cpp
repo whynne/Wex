@@ -16,7 +16,7 @@ Sprite::Sprite()
 	
 }
 
-Sprite::Sprite(TexData &mytexture,int frames,int height,int width)
+Sprite::Sprite(Texture &mytexture,int frames,int height,int width)
 {
   clipheight = height;
   clipwidth = width;
@@ -37,14 +37,14 @@ void Sprite::setClip(int frame,GLfloat x,GLfloat y)
 	}
 	else
 	{
-		texcoords[frame][0].u = (x*clipwidth)/texture->width;
-		texcoords[frame][0].v = (y*clipheight)/texture->height;
-		texcoords[frame][1].u = ((x*clipwidth)+clipwidth)/texture->width;
-		texcoords[frame][1].v = (y*clipheight)/texture->height;
-		texcoords[frame][2].u = ((x*clipwidth)+clipwidth)/texture->width;
-		texcoords[frame][2].v = ((y*clipheight)+clipheight)/texture->height; 
-		texcoords[frame][3].u = (x*clipwidth)/texture->width;
-		texcoords[frame][3].v = ((y*clipheight)+clipheight)/texture->height;	
+		texcoords[frame][0].u = (x*clipwidth)/texture->getWidth();
+		texcoords[frame][0].v = (y*clipheight)/texture->getHeight();
+		texcoords[frame][1].u = ((x*clipwidth)+clipwidth)/texture->getWidth();
+		texcoords[frame][1].v = (y*clipheight)/texture->getHeight();
+		texcoords[frame][2].u = ((x*clipwidth)+clipwidth)/texture->getWidth();
+		texcoords[frame][2].v = ((y*clipheight)+clipheight)/texture->getHeight(); 
+		texcoords[frame][3].u = (x*clipwidth)/texture->getWidth();
+		texcoords[frame][3].v = ((y*clipheight)+clipheight)/texture->getHeight();	
 	}
 }
 
@@ -173,19 +173,19 @@ BitmapFont::BitmapFont()
 {
 }
 
-BitmapFont::BitmapFont(TexData& texture)
+BitmapFont::BitmapFont(Texture& texture)
 {
 	buildFont(texture);
 }
 
-void BitmapFont::buildFont(TexData& texture)
+void BitmapFont::buildFont(Texture& texture)
 {
 	int currentchar = 0;
 	for(int row = 0; row < 16; row++)
 	{
 		for(int column = 0; column < 16; column++)
 		{
-			_charactersprites[currentchar] = graphics::Sprite(texture,1,texture.height/16,texture.width/16);
+			_charactersprites[currentchar] = graphics::Sprite(texture,1,texture.getHeight()/16,texture.getWidth()/16);
 			_charactersprites[currentchar].setClip(0,column,row);
 			currentchar++;
 		}
@@ -197,7 +197,7 @@ void BitmapFont::buildFont(TexData& texture)
 Texture Definitions
 =====================*/
 
-bool Texture::loadUncompressedTGA(char *filename,std::ifstream &texturestream)
+bool Texture::loadUncompressedTGA(char *filename)
 {
 	//Headers for the tga texture
 	GLubyte header[12];
@@ -222,11 +222,11 @@ bool Texture::loadUncompressedTGA(char *filename,std::ifstream &texturestream)
 	texturestream.read((char*)header,sizeof(header));
 
 	texturestream.read((char*)header2, sizeof(header2));				//read 6 bytes into the file to get important information
-	width  = (GLuint)header2[1] * 256 + (GLuint)header2[0];				//read and calculate width and save
-	height = (GLuint)header2[3] * 256 + (GLuint)header2[2];				//read and calculate height and save
+	this->width  = (GLuint)header2[1] * 256 + (GLuint)header2[0];				//read and calculate width and save
+	this->height = (GLuint)header2[3] * 256 + (GLuint)header2[2];				//read and calculate height and save
 	bpp    = (GLuint)header2[4];										//read bpp and save
 
-	if((width <= 0) || (height <= 0) || ((bpp != 24) && (bpp !=32)))	//check to make sure the height, width, and bpp are valid
+	if((this->width <= 0) || (this->height <= 0) || ((bpp != 24) && (bpp !=32)))	//check to make sure the height, width, and bpp are valid
 	{
 		return false;
 	}
@@ -238,7 +238,7 @@ bool Texture::loadUncompressedTGA(char *filename,std::ifstream &texturestream)
 	{
 		type = GL_RGBA;
 	}
-	imagesize = ((bpp/8) * width * height);										//determine size in bytes of the image
+	imagesize = ((bpp/8) * this->width * this->height);										//determine size in bytes of the image
 	imagedata = new GLubyte[imagesize];											//allocate memory for our imagedata variable
 	texturestream.read((char*)imagedata,imagesize);								//read according the the size of the image and save into imagedata 
 
@@ -250,8 +250,8 @@ bool Texture::loadUncompressedTGA(char *filename,std::ifstream &texturestream)
 
 	texturestream.close();														//close ifstream because we're done with it
 
-	glGenTextures(1, &texID);													// Generate OpenGL texture IDs
-	glBindTexture(GL_TEXTURE_2D, texID);										
+	glGenTextures(1, &this->texid);													// Generate OpenGL texture IDs
+	glBindTexture(GL_TEXTURE_2D, this->texid);										
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);				// Set texture parameters
@@ -264,7 +264,7 @@ bool Texture::loadUncompressedTGA(char *filename,std::ifstream &texturestream)
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, imagedata);
+	glTexImage2D(GL_TEXTURE_2D, 0, type, this->width, this->height, 0, type, GL_UNSIGNED_BYTE, imagedata);
     delete imagedata;
 	return true;
 }
@@ -273,8 +273,8 @@ void Texture::createEmptyTexture(int height,int width)
 {
 	GLubyte* imagedata;		        //Pointer for storing image data
 	imagedata = new GLubyte[height*width*4];
-	glGenTextures(1, &_texid);													// Generate OpenGL texture IDs
-	glBindTexture(GL_TEXTURE_2D, _texid);										
+	glGenTextures(1, &this->texid);													// Generate OpenGL texture IDs
+	glBindTexture(GL_TEXTURE_2D, this->texid);										
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);				// Set texture parameters
@@ -289,9 +289,19 @@ void Texture::createEmptyTexture(int height,int width)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagedata);
 	delete imagedata;
-	_height = height;
-	_width = width;
-	cout << "Created " << width << "x" << height << " empty texture with id " << _texid << endl;
+	this->height = height;
+	this->width = width;
+	cout << "Created " << width << "x" << height << " empty texture with id " << this->texid << endl;
+}
+
+GLuint Texture::getHeight()
+{
+	return height;
+}
+
+GLuint Texture::getWidth()
+{
+	return width;
 }
 
 
