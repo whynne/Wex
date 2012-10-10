@@ -8,15 +8,15 @@ GLubyte uncompressedtgaheader[12] = {0,0, 2,0,0,0,0,0,0,0,0,0};
 GLubyte compressedtgaheader[12]   = {0,0,10,0,0,0,0,0,0,0,0,0};
 
 /*=====================
-Sprite definitions
+SpriteSheet definitions
 =====================*/
 
-Sprite::Sprite()
+SpriteSheet::SpriteSheet()
 {
 	
 }
 
-Sprite::Sprite(Texture &mytexture,int frames,int height,int width)
+SpriteSheet::SpriteSheet(Texture &mytexture,int frames,int height,int width)
 {
   clipheight = height;
   clipwidth = width;
@@ -29,7 +29,7 @@ Sprite::Sprite(Texture &mytexture,int frames,int height,int width)
   }
 }
 
-void Sprite::setClip(int frame,GLfloat x,GLfloat y)
+void SpriteSheet::setClip(int frame,GLfloat x,GLfloat y)
 {
 	if(frame > maxclips)
 	{
@@ -48,7 +48,7 @@ void Sprite::setClip(int frame,GLfloat x,GLfloat y)
 	}
 }
 
-TexCoord* Sprite::getTexCoords(int frame)
+TexCoord* SpriteSheet::getTexCoords(int frame)
 {
 	if(frame > maxclips)
 	{
@@ -86,7 +86,7 @@ Animation::Animation()
 	frametime = 0.0;
 }
 
-Sprite* Animation::getSprite()
+SpriteSheet* Animation::getSpriteSheet()
 {
 	return currentsprite;
 }
@@ -96,14 +96,14 @@ Animation::Animation(double quadheight,double quadwidth)
 	currentframe = 0;
 	accumulator = 0.0;
 	frametime = 0.5;
-	_vertices[0] = Point3d(0,0,0);
-	_vertices[1] = Point3d(quadwidth,0,0);
-	_vertices[2] = Point3d(quadwidth,quadheight,0); 
-	_vertices[3] = Point3d(0,quadheight,0); 
-	_color[0] = ColorRGBA();
-	_color[1] = ColorRGBA();
-    _color[2] = ColorRGBA();
-	_color[3] = ColorRGBA();
+	vertices[0] = Point3d(0,0,0);
+	vertices[1] = Point3d(quadwidth,0,0);
+	vertices[2] = Point3d(quadwidth,quadheight,0); 
+	vertices[3] = Point3d(0,quadheight,0); 
+	colors[0] = ColorRGBA();
+	colors[1] = ColorRGBA();
+    colors[2] = ColorRGBA();
+	colors[3] = ColorRGBA();
 }
 
 Animation::Animation(double quadheight,double quadwidth,ColorRGBA color)
@@ -111,25 +111,25 @@ Animation::Animation(double quadheight,double quadwidth,ColorRGBA color)
 	currentframe = 0;
 	accumulator = 0.0;
 	frametime = 0.2;
-	_vertices[0] = Point3d(0,0,0);
-	_vertices[1] = Point3d(quadwidth,0,0);
-	_vertices[2] = Point3d(quadwidth,quadheight,0); 
-	_vertices[3] = Point3d(0,quadheight,0); 
-	_color[0] = color;
-	_color[1] = color;
-    _color[2] = color;
-	_color[3] = color;
+	vertices[0] = Point3d(0,0,0);
+	vertices[1] = Point3d(quadwidth,0,0);
+	vertices[2] = Point3d(quadwidth,quadheight,0); 
+	vertices[3] = Point3d(0,quadheight,0); 
+	colors[0] = color;
+	colors[1] = color;
+    colors[2] = color;
+	colors[3] = color;
 }
 
 void Animation::setClipDimensions(double height, double width)
 {
-	_vertices[0] = Point3d(0,0,0);
-	_vertices[1] = Point3d(width,0,0);
-	_vertices[2] = Point3d(width,height,0); 
-	_vertices[3] = Point3d(0,height,0); 
+	vertices[0] = Point3d(0,0,0);
+	vertices[1] = Point3d(width,0,0);
+	vertices[2] = Point3d(width,height,0); 
+	vertices[3] = Point3d(0,height,0); 
 }
 
-void Animation::changeSprite(Sprite *newsprite)
+void Animation::changeSpriteSheet(SpriteSheet *newsprite)
 {
 	if (currentsprite != newsprite)
 	{
@@ -139,7 +139,7 @@ void Animation::changeSprite(Sprite *newsprite)
 	}
 }
 
-void Animation::changeSpriteNoRewind(Sprite *newsprite)
+void Animation::changeSpriteSheetNoRewind(SpriteSheet *newsprite)
 {
 	if (currentsprite != newsprite)
 	{
@@ -185,7 +185,7 @@ void BitmapFont::buildFont(Texture& texture)
 	{
 		for(int column = 0; column < 16; column++)
 		{
-			_charactersprites[currentchar] = graphics::Sprite(texture,1,texture.getHeight()/16,texture.getWidth()/16);
+			_charactersprites[currentchar] = graphics::SpriteSheet(texture,1,texture.getHeight()/16,texture.getWidth()/16);
 			_charactersprites[currentchar].setClip(0,column,row);
 			currentchar++;
 		}
@@ -306,72 +306,72 @@ GLuint Texture::getWidth()
 
 
 /*=====================
-Sprite Batcher definitions
+SpriteSheet Batcher definitions
 =====================*/
 
 
 void SpriteBatch::addToBuffer(Animation* animation,Point3d position)
 {
 
-	if (animation == 0 || animation->getSprite() == 0)
+	if (animation == 0 || animation->getSpriteSheet() == 0)
 	{
 		cout << "Error: Attempting to draw animation from a null pointer!" << endl;
 		return;
 	}
 
-	_tempvertbuf = animation->getVertices();
-	_temptexbuf = animation->getCurrentTexCoords();
-	_tempcolorbuf = animation->getColor();
+	tempvertbuf = animation->getVertices();
+	temptexbuf = animation->getCurrentTexCoords();
+	tempcolorbuf = animation->getColor();
 
 
-	_vertexbuffer[_bufferpos+0] = _tempvertbuf[0]+position;
-	_vertexbuffer[_bufferpos+1] = _tempvertbuf[1]+position;
-	_vertexbuffer[_bufferpos+2] = _tempvertbuf[2]+position;
-	_vertexbuffer[_bufferpos+3] = _tempvertbuf[3]+position;
+	vertexbuffer[bufferpos+0] = tempvertbuf[0]+position;
+	vertexbuffer[bufferpos+1] = tempvertbuf[1]+position;
+	vertexbuffer[bufferpos+2] = tempvertbuf[2]+position;
+	vertexbuffer[bufferpos+3] = tempvertbuf[3]+position;
 	
 
-	_texcoordbuffer[_bufferpos+0] = _temptexbuf[0];
-	_texcoordbuffer[_bufferpos+1] = _temptexbuf[1];
-	_texcoordbuffer[_bufferpos+2] = _temptexbuf[2];
-	_texcoordbuffer[_bufferpos+3] = _temptexbuf[3];
+	texcoordbuffer[bufferpos+0] = temptexbuf[0];
+	texcoordbuffer[bufferpos+1] = temptexbuf[1];
+	texcoordbuffer[bufferpos+2] = temptexbuf[2];
+	texcoordbuffer[bufferpos+3] = temptexbuf[3];
 
 	
-	_colorbuffer[_bufferpos+0] = _tempcolorbuf[0];
-	_colorbuffer[_bufferpos+1] = _tempcolorbuf[1];
-	_colorbuffer[_bufferpos+2] = _tempcolorbuf[2];
-	_colorbuffer[_bufferpos+3] = _tempcolorbuf[3];
+	colorbuffer[bufferpos+0] = tempcolorbuf[0];
+	colorbuffer[bufferpos+1] = tempcolorbuf[1];
+	colorbuffer[bufferpos+2] = tempcolorbuf[2];
+	colorbuffer[bufferpos+3] = tempcolorbuf[3];
 
-	_bufferpos += 4;
+	bufferpos += 4;
 }
 
 Point3d* SpriteBatch::get_vertbuffer()
 {
-	return _vertexbuffer;
+	return vertexbuffer;
 }
 
 TexCoord* SpriteBatch::getTexCoordBuffer()
 {
-	return _texcoordbuffer;
+	return texcoordbuffer;
 }
 
 ColorRGBA* SpriteBatch::getColorBuffer()
 {
-	return _colorbuffer;
+	return colorbuffer;
 }
 
 GLint SpriteBatch::getBufferLength()
 {
-	return _bufferpos;
+	return bufferpos;
 }
 
 void SpriteBatch::reset()
 {
-	_bufferpos = 0;  
+	bufferpos = 0;  
 }
 
 bool SpriteBatch::isFull()
 {
-	if(BUFFER_SIZE-_bufferpos < 4)
+	if(BUFFER_SIZE-bufferpos < 4)
 	{
 		return true;
 	}
@@ -383,7 +383,7 @@ bool SpriteBatch::isFull()
 
 SpriteBatch::SpriteBatch()
 {
-	_bufferpos = 0;
+	bufferpos = 0;
 }
 
 
@@ -459,7 +459,7 @@ void Renderer::drawText(std::string text,Point3d position, GLint space)
 	Animation character(16,16);
 	for(int i = 0; i < text.size(); i++)
 	{
-		character.changeSprite(&fonts[0]._charactersprites[(int)text[i]]);
+		character.changeSpriteSheet(&fonts[0]._charactersprites[(int)text[i]]);
 
 		drawFixed(&character,Point3d(position._x+(i*space),position._y,0));
 	}

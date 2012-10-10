@@ -35,7 +35,10 @@ namespace graphics
 	{
 	  GLfloat u,v;
 	};	
-
+	struct SpriteFrame
+	{
+		TexCoord texcoords[4];
+	};
 	struct ColorRGBA
 	{
 		float _r;
@@ -55,64 +58,54 @@ namespace graphics
 	public:
 		GLuint getHeight();
 		GLuint getWidth();
-		GLuint  getTexId();
+		GLuint getTexId();
 	    void createEmptyTexture(int height,int width);
 		bool loadUncompressedTGA(char *filename);
 		Texture();
 
 	};
 
-    class Sprite
+
+
+    class SpriteSheet : public Texture 
     {
     private:
-    
-      Texture*   texture;
-      int        maxclips;
-      int        clipheight;
-	  int        clipwidth;
-      TexCoord** texcoords;
-    
+      map<string,vector<SpriteFrame>> sequences;
     public:
-    
-      TexCoord* getTexCoords(int frame);
-      void      setClip(int frame,GLfloat x,GLfloat y);
-      int       getMaxClips(){return maxclips;};
-      Texture   getTexture(){return *texture;};
-    
-      Sprite();
-      Sprite(Texture &mytexture,int frames,int height,int width);
-    
+      void setFrame(string sequence,unsigned int frame);
+	  void getFrame(string sequence,unsigned int frame);
+      SpriteSheet();
     };
 
 	class Animation
 	{
 	private:
-	  Point3d _vertices[4];
-	  ColorRGBA _color[4];
-	  double frametime;
-	  double accumulator;
-	  bool playing;
-	  int currentframe;
-	  Sprite *currentsprite;
+	  Point3d     vertices[4];
+	  ColorRGBA   colors[4];
+	  double      frametime;
+	  double      accumulator;
+	  bool        playing;
+	  int         currentframe;
+	  SpriteSheet *currentsprite;
 
 	public:
 	  Animation();
 	  Animation(double quadheight,double quadwidth);
 	  Animation(double quadheight,double quadwidth,ColorRGBA color);
-	  Sprite* getSprite();
+	  SpriteSheet* getSpriteSheet();
 	
-	  TexCoord* getCurrentTexCoords(){return currentsprite->getTexCoords(currentframe);};
-	  Point3d* getVertices(){return _vertices;};
-	  ColorRGBA* getColor(){return _color;};
-	  int getTexID(){return currentsprite->getTexture().getTexId();};
+	  TexCoord*  getCurrentTexCoords(){return currentsprite->getTexCoords(currentframe);};
+	  Point3d*   getVertices(){return vertices;};
+	  ColorRGBA* getColor(){return colors;};
+	  int        getTexID(){return currentsprite->getTexture().getTexId();};
 	  
 	  void setClipDimensions(double height, double width);
 	  
 	  void play(double delta);
 	  void stop();
 	  void rewind();
-	  void changeSprite(Sprite *newsprite);
-	  void changeSpriteNoRewind(Sprite *newsprite);
+	  void changeSpriteSheet(SpriteSheet *newsprite);
+	  void changeSpriteSheetNoRewind(SpriteSheet *newsprite);
 	};
 
 	class BitmapFont
@@ -120,23 +113,24 @@ namespace graphics
 	private:       
 		GLint  _handle;                        // handle to the font texture in openGL
 	public:
-		Sprite _charactersprites[256];
+		SpriteSheet _fonttexture;
+		
+		void buildFont(Texture& texture);      // generates font
 		BitmapFont();                          // default constructor
 		BitmapFont(Texture& texture);          // generates font on construction
-		void buildFont(Texture& texture);      // generates font
 	};
 
 	class SpriteBatch
 	{
 	private:
 	
-		Point3d*   _tempvertbuf;
-		TexCoord*  _temptexbuf;
-		ColorRGBA* _tempcolorbuf;
-		Point3d    _vertexbuffer[BUFFER_SIZE];
-		TexCoord   _texcoordbuffer[BUFFER_SIZE];
-		ColorRGBA  _colorbuffer[BUFFER_SIZE];
-		GLint      _bufferpos;
+		Point3d*   tempvertbuf;
+		TexCoord*  temptexbuf;
+		ColorRGBA* tempcolorbuf;
+		Point3d    vertexbuffer[BUFFER_SIZE];
+		TexCoord   texcoordbuffer[BUFFER_SIZE];
+		ColorRGBA  colorbuffer[BUFFER_SIZE];
+		GLint      bufferpos;
 	
 	public:
 	
@@ -157,14 +151,14 @@ namespace graphics
 		Resources();
 		Resources&   operator=(Resources const&){};
 		map<string,GLint>  _textures;
-		map<string,Sprite> _sprites;
+		map<string,SpriteSheet> _sprites;
 		map<string,GLint>  _shaders;
 
 	public:
 		static Resources _resourcemanager;
 
 		void loadAsTexture(string filename);
-		void loadSpriteDefinition(string filename);
+		void loadSpriteSheetDefinition(string filename);
 		void loadShader(string vertexfilename,string fragmentfilename);
 	};
 
