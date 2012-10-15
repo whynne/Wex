@@ -31,10 +31,8 @@ namespace graphics
     	TYPE_RAW
     };	
 
-	struct TexCoord
-	{
-	  GLfloat u,v;
-	};	
+	typedef Point2d TexCoord;
+
 	struct SpriteFrame
 	{
 		TexCoord texcoords[4];
@@ -72,40 +70,50 @@ namespace graphics
     private:
       map<string,vector<SpriteFrame>> sequences;
     public:
+	  unsigned int getSequenceLength(string sequence);
       void setFrame(string sequence,unsigned int frame);
 	  void getFrame(string sequence,unsigned int frame);
       SpriteSheet();
     };
 
-	class Animation
+	class Quad
+	{
+	public:
+		Point3d vertices[4];
+	}
+
+	class Sprite
 	{
 	private:
-	  Point3d     vertices[4];
-	  ColorRGBA   colors[4];
-	  double      frametime;
-	  double      accumulator;
-	  bool        playing;
-	  int         currentframe;
-	  SpriteSheet *currentsprite;
+	  Point3d     offset;
+	  float       rotate;
+	  float       xscale;
+	  float       yscale;
+	  ColorRGBA   color;
+
+	  string       sequence;
+	  unsigned int sequencelength;
+	  double       frametime;
+	  double       accumulator;
+	  bool         playing;
+	  unsigned int frame;
+	  SpriteSheet *targetspritesheet;
 
 	public:
-	  Animation();
-	  Animation(double quadheight,double quadwidth);
-	  Animation(double quadheight,double quadwidth,ColorRGBA color);
-	  SpriteSheet* getSpriteSheet();
-	
-	  TexCoord*  getCurrentTexCoords(){return currentsprite->getTexCoords(currentframe);};
-	  Point3d*   getVertices(){return vertices;};
-	  ColorRGBA* getColor(){return colors;};
-	  int        getTexID(){return currentsprite->getTexture().getTexId();};
-	  
-	  void setClipDimensions(double height, double width);
+	  Sprite();
+	  SpriteSheet   getSpriteSheet();
+	  void          setSpriteSheet();
+	  SpriteFrame   getSpriteFrame();
+	  Point3d       getOffset();
+	  ColorRGBA     getColor();
 	  
 	  void play(double delta);
+	  void playOnce();
 	  void stop();
 	  void rewind();
-	  void changeSpriteSheet(SpriteSheet *newsprite);
-	  void changeSpriteSheetNoRewind(SpriteSheet *newsprite);
+	  void changeSequence(string sequence);
+	  void changeSpriteSheet(SpriteSheet *newsheet);
+	  void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
 	};
 
 	class BitmapFont
@@ -134,7 +142,7 @@ namespace graphics
 	
 	public:
 	
-		void       addToBuffer(Animation* animation,Point3d position);
+		void       addToBuffer(Sprite* animation,Point3d position);
 		Point3d*   get_vertbuffer();
 		TexCoord*  getTexCoordBuffer();
 		ColorRGBA* getColorBuffer();
@@ -180,12 +188,12 @@ namespace graphics
 		void    moveCameraRelative(Point3d movementvector);
 		void    moveCameraTowards(Point3d position);
 
-	  	void    draw(Animation* animation, Point3d position); 
-		void    drawFixed(Animation* animation,Point3d position);
+	  	void    draw(Sprite* sprite,Point3d position); 
+		void    drawFixed(Sprite* sprite,Point3d position);
 			    
 		void    drawText(std::string text, Point3d position, GLint space);                   //Draws white text.
-		//void    drawText(std::string text, Point3d position, GLint space, ColorRGBA color);  //Draws colored text.
-		void    drawBuffer();    // Adds to buffer
+		//void   drawText(std::string text, Point3d position, GLint space, ColorRGBA color);  //Draws colored text.
+		void    drawBuffer();
 
 		// Shader shit
 

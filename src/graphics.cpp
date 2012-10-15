@@ -16,50 +16,8 @@ SpriteSheet::SpriteSheet()
 	
 }
 
-SpriteSheet::SpriteSheet(Texture &mytexture,int frames,int height,int width)
-{
-  clipheight = height;
-  clipwidth = width;
-  maxclips = frames;
-  texture = &mytexture;
-  texcoords = new TexCoord*[frames];
-  for(int i = 0;i < frames;i++)
-  {
-	texcoords[i] = new TexCoord[4];
-  }
-}
-
-void SpriteSheet::setClip(int frame,GLfloat x,GLfloat y)
-{
-	if(frame > maxclips)
-	{
-	   return;
-	}
-	else
-	{
-		texcoords[frame][0].u = (x*clipwidth)/texture->getWidth();
-		texcoords[frame][0].v = (y*clipheight)/texture->getHeight();
-		texcoords[frame][1].u = ((x*clipwidth)+clipwidth)/texture->getWidth();
-		texcoords[frame][1].v = (y*clipheight)/texture->getHeight();
-		texcoords[frame][2].u = ((x*clipwidth)+clipwidth)/texture->getWidth();
-		texcoords[frame][2].v = ((y*clipheight)+clipheight)/texture->getHeight(); 
-		texcoords[frame][3].u = (x*clipwidth)/texture->getWidth();
-		texcoords[frame][3].v = ((y*clipheight)+clipheight)/texture->getHeight();	
-	}
-}
-
-TexCoord* SpriteSheet::getTexCoords(int frame)
-{
-	if(frame > maxclips)
-	{
-	   return 0;
-	}
-
-	return texcoords[frame];
-}
-
 /*=====================
-Animation definitions
+Sprite definitions
 =====================*/
 
 ColorRGBA::ColorRGBA()
@@ -78,90 +36,58 @@ ColorRGBA::ColorRGBA(float r, float g, float b, float a)
 	_a = a;
 }
 
-Animation::Animation()
+Sprite::Sprite()
 {
-	currentsprite = 0;
-	currentframe = 0;
+	targetspritesheet = 0;
+	frame = 0;
 	accumulator = 0.0;
 	frametime = 0.0;
 }
 
-SpriteSheet* Animation::getSpriteSheet()
+SpriteSheet Sprite::getSpriteSheet()
 {
-	return currentsprite;
+	return *targetspritesheet;
 }
 
-Animation::Animation(double quadheight,double quadwidth)
+void Sprite::changeSequence(string sequence)
 {
-	currentframe = 0;
-	accumulator = 0.0;
-	frametime = 0.5;
-	vertices[0] = Point3d(0,0,0);
-	vertices[1] = Point3d(quadwidth,0,0);
-	vertices[2] = Point3d(quadwidth,quadheight,0); 
-	vertices[3] = Point3d(0,quadheight,0); 
-	colors[0] = ColorRGBA();
-	colors[1] = ColorRGBA();
-    colors[2] = ColorRGBA();
-	colors[3] = ColorRGBA();
+	this->sequence = sequence;
+	this->sequencelength = targetspritesheet->getSequenceLength(sequence);
 }
 
-Animation::Animation(double quadheight,double quadwidth,ColorRGBA color)
+void Sprite::changeSpriteSheet(SpriteSheet *newsprite)
 {
-	currentframe = 0;
-	accumulator = 0.0;
-	frametime = 0.2;
-	vertices[0] = Point3d(0,0,0);
-	vertices[1] = Point3d(quadwidth,0,0);
-	vertices[2] = Point3d(quadwidth,quadheight,0); 
-	vertices[3] = Point3d(0,quadheight,0); 
-	colors[0] = color;
-	colors[1] = color;
-    colors[2] = color;
-	colors[3] = color;
-}
-
-void Animation::setClipDimensions(double height, double width)
-{
-	vertices[0] = Point3d(0,0,0);
-	vertices[1] = Point3d(width,0,0);
-	vertices[2] = Point3d(width,height,0); 
-	vertices[3] = Point3d(0,height,0); 
-}
-
-void Animation::changeSpriteSheet(SpriteSheet *newsprite)
-{
-	if (currentsprite != newsprite)
+	if (targetspritesheet != newsprite)
 	{
-		currentsprite = newsprite;
-		currentframe = 0;
+		targetspritesheet = newsprite;
+		targetspritesheet = 0;
 		accumulator = 0;
 	}
 }
 
-void Animation::changeSpriteSheetNoRewind(SpriteSheet *newsprite)
+void Sprite::changeSpriteSheetNoRewind(SpriteSheet *newsprite)
 {
-	if (currentsprite != newsprite)
+	if (targetspritesheet != newsprite)
 	{
-		currentsprite = newsprite;
+		targetspritesheet = newsprite;
 	}
 }
 
-void Animation::play(double deltatime)
+void Sprite::play(double deltatime)
 {
 	accumulator += deltatime;
 	if(accumulator > frametime)
 	{
-		currentframe+=1;
+		frame+=1;
 		accumulator = 0;
 	}
-	if(currentframe > currentsprite->getMaxClips()-1)
-		currentframe = 0;
+	if(frame > sequencelength);
+		targetspritesheet = 0;
 }
 
-void Animation::rewind()
+void Sprite::rewind()
 {
-	currentframe = 0;
+	frame = 0;
 	accumulator = 0;
 }
 
@@ -185,8 +111,8 @@ void BitmapFont::buildFont(Texture& texture)
 	{
 		for(int column = 0; column < 16; column++)
 		{
-			_charactersprites[currentchar] = graphics::SpriteSheet(texture,1,texture.getHeight()/16,texture.getWidth()/16);
-			_charactersprites[currentchar].setClip(0,column,row);
+			//_charactersprites[currentchar] = graphics::SpriteSheet(texture,1,texture.getHeight()/16,texture.getWidth()/16);
+			//_charactersprites[currentchar].setClip(0,column,row);
 			currentchar++;
 		}
 	}
@@ -310,36 +236,39 @@ SpriteSheet Batcher definitions
 =====================*/
 
 
-void SpriteBatch::addToBuffer(Animation* animation,Point3d position)
+void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position)
 {
 
-	if (animation == 0 || animation->getSpriteSheet() == 0)
+	if (sprite == 0 || sprite->getSpriteSheet() == 0)
 	{
-		cout << "Error: Attempting to draw animation from a null pointer!" << endl;
+		cout << "Error: Attempting to draw sprite from a null pointer!" << endl;
 		return;
 	}
 
-	tempvertbuf = animation->getVertices();
-	temptexbuf = animation->getCurrentTexCoords();
-	tempcolorbuf = animation->getColor();
+	const TexCoord topleft     = sprite->getSpriteFrame().texcoords[0];
+	const TexCoord topright    = sprite->getSpriteFrame().texcoords[1];
+	const TexCoord bottomright = sprite->getSpriteFrame().texcoords[2];
+	const TexCoord bottomleft  = sprite->getSpriteFrame().texcoords[3];
+	const double   height = sprite->getSpriteSheet().getHeight();
+	const double   width  = sprite->getSpriteSheet().getWidth();
 
 
-	vertexbuffer[bufferpos+0] = tempvertbuf[0]+position;
-	vertexbuffer[bufferpos+1] = tempvertbuf[1]+position;
-	vertexbuffer[bufferpos+2] = tempvertbuf[2]+position;
-	vertexbuffer[bufferpos+3] = tempvertbuf[3]+position;
+
+	vertexbuffer[bufferpos+0] = position + sprite->getOffset();
+	vertexbuffer[bufferpos+1] = topright * height;
+	vertexbuffer[bufferpos+2] = bottomright * height;
+	vertexbuffer[bufferpos+3] = bottomleft * height;
 	
-
-	texcoordbuffer[bufferpos+0] = temptexbuf[0];
-	texcoordbuffer[bufferpos+1] = temptexbuf[1];
-	texcoordbuffer[bufferpos+2] = temptexbuf[2];
-	texcoordbuffer[bufferpos+3] = temptexbuf[3];
+	texcoordbuffer[bufferpos+0] = sprite->getSpriteFrame().texcoords[0];
+	texcoordbuffer[bufferpos+1] = sprite->getSpriteFrame().texcoords[1];
+	texcoordbuffer[bufferpos+2] = sprite->getSpriteFrame().texcoords[2];
+	texcoordbuffer[bufferpos+3] = sprite->getSpriteFrame().texcoords[3];
 
 	
-	colorbuffer[bufferpos+0] = tempcolorbuf[0];
-	colorbuffer[bufferpos+1] = tempcolorbuf[1];
-	colorbuffer[bufferpos+2] = tempcolorbuf[2];
-	colorbuffer[bufferpos+3] = tempcolorbuf[3];
+	colorbuffer[bufferpos+0] = sprite->getColor();
+	colorbuffer[bufferpos+1] = sprite->getColor();
+	colorbuffer[bufferpos+2] = sprite->getColor();
+	colorbuffer[bufferpos+3] = sprite->getColor();
 
 	bufferpos += 4;
 }
@@ -409,7 +338,7 @@ Renderer::Renderer()
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-void Renderer::draw(Animation* animation,Point3d position)
+void Renderer::draw(Sprite* animation,Point3d position)
 {
 	assert(animation != 0);
 
@@ -423,7 +352,7 @@ void Renderer::draw(Animation* animation,Point3d position)
 		_vertbuffer.addToBuffer(animation,position-_camera);
 }
 
-void Renderer::drawFixed(Animation* animation,Point3d position)
+void Renderer::drawFixed(Sprite* animation,Point3d position)
 {
 	if(_vertbuffer.isFull())
 	{
@@ -456,7 +385,7 @@ void Renderer::drawBuffer()
 void Renderer::drawText(std::string text,Point3d position, GLint space)
 {
 	/*
-	Animation character(16,16);
+	Sprite character(16,16);
 	for(int i = 0; i < text.size(); i++)
 	{
 		character.changeSpriteSheet(&fonts[0]._charactersprites[(int)text[i]]);
