@@ -37,6 +37,7 @@ namespace graphics
 	{
 		TexCoord texcoords[4];
 	};
+
 	struct ColorRGBA
 	{
 		float _r;
@@ -72,7 +73,7 @@ namespace graphics
     public:
 	  unsigned int getSequenceLength(string sequence);
       void setFrame(string sequence,unsigned int frame);
-	  void getFrame(string sequence,unsigned int frame);
+	  SpriteFrame getFrame(string sequence,unsigned int frame);
       SpriteSheet();
     };
 
@@ -80,9 +81,9 @@ namespace graphics
 	{
 	public:
 		Point3d vertices[4];
-	}
+	};
 
-	class Sprite
+	class Sprite : public Quad
 	{
 	private:
 	  Point3d     offset;
@@ -101,12 +102,19 @@ namespace graphics
 
 	public:
 	  Sprite();
-	  SpriteSheet   getSpriteSheet();
-	  void          setSpriteSheet();
+	  SpriteSheet*  getSpriteSheet();
+	  void          setSpriteSheet(string name);
 	  SpriteFrame   getSpriteFrame();
+	  void          setSpriteFrame(unsigned int frame);
 	  Point3d       getOffset();
+	  void          setOffset(Point3d offset);
 	  ColorRGBA     getColor();
-	  
+	  void          setColor(ColorRGBA color);
+	  void          setRotate(float rotate);
+	  void          setScaleX(float scalefactor);
+	  void          setScaleY(float scalefactor);
+
+
 	  void play(double delta);
 	  void playOnce();
 	  void stop();

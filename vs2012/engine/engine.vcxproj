@@ -107,7 +107,6 @@
     <ClInclude Include="..\..\include\physics.h" />
     <ClInclude Include="..\..\include\teststate.h" />
     <ClInclude Include="..\..\include\timer.h" />
-    <ClInclude Include="..\..\include\ui.h" />
     <ClInclude Include="..\..\include\vec.h" />
   </ItemGroup>
   <ItemGroup>

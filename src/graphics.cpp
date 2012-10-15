@@ -16,6 +16,22 @@ SpriteSheet::SpriteSheet()
 	
 }
 
+SpriteFrame getFrame(string sequence,unsigned int frame)
+{
+
+}
+
+unsigned int SpriteSheet::getSequenceLength(string name)
+{
+	return sequences.at(name).size();
+}
+
+SpriteSheet* Sprite::getSpriteSheet()
+{
+	return targetspritesheet;
+}
+
+
 /*=====================
 Sprite definitions
 =====================*/
@@ -42,11 +58,6 @@ Sprite::Sprite()
 	frame = 0;
 	accumulator = 0.0;
 	frametime = 0.0;
-}
-
-SpriteSheet Sprite::getSpriteSheet()
-{
-	return *targetspritesheet;
 }
 
 void Sprite::changeSequence(string sequence)
@@ -81,7 +92,7 @@ void Sprite::play(double deltatime)
 		frame+=1;
 		accumulator = 0;
 	}
-	if(frame > sequencelength);
+	if(frame > sequencelength)
 		targetspritesheet = 0;
 }
 
@@ -89,6 +100,21 @@ void Sprite::rewind()
 {
 	frame = 0;
 	accumulator = 0;
+}
+
+ColorRGBA Sprite::getColor()
+{
+	return color;
+}
+
+Point3d Sprite::getOffset()
+{
+	return offset;
+}
+
+SpriteFrame Sprite::getSpriteFrame()
+{
+	return targetspritesheet->getFrame(sequence,frame);
 }
 
 /*=====================
@@ -230,6 +256,10 @@ GLuint Texture::getWidth()
 	return width;
 }
 
+Texture::Texture(){
+
+}
+
 
 /*=====================
 SpriteSheet Batcher definitions
@@ -249,8 +279,8 @@ void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position)
 	const TexCoord topright    = sprite->getSpriteFrame().texcoords[1];
 	const TexCoord bottomright = sprite->getSpriteFrame().texcoords[2];
 	const TexCoord bottomleft  = sprite->getSpriteFrame().texcoords[3];
-	const double   height = sprite->getSpriteSheet().getHeight();
-	const double   width  = sprite->getSpriteSheet().getWidth();
+	const double   height = sprite->getSpriteSheet()->getHeight();
+	const double   width  = sprite->getSpriteSheet()->getWidth();
 
 
 

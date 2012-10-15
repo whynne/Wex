@@ -78,6 +78,11 @@ public:
 
 	T normal();
 
+	Vec3<T> operator=(const Vec2<T> &op2)
+    {	
+		return Vec3<T>(op2._x,op2._y,this->_z);
+    };
+
 	//OPERATOR OVERLOADS
 
 	friend Vec3<T> operator*(const Vec3<T> &op1,const Vec3<T> &op2)
@@ -128,7 +133,6 @@ public:
     {	
 		return Vec3<T>(op1 - op2._x,op1 - op2._y,op1 - op2._z);
     };
-
 
 	friend T dot(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
