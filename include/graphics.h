@@ -36,6 +36,8 @@ namespace graphics
 	struct SpriteFrame
 	{
 		TexCoord texcoords[4];
+		float height;
+		float width;
 	};
 
 	struct ColorRGBA
@@ -72,8 +74,8 @@ namespace graphics
       map<string,vector<SpriteFrame>> sequences;
     public:
 	  unsigned int getSequenceLength(string sequence);
-      void setFrame(string sequence,unsigned int frame);
-	  SpriteFrame getFrame(string sequence,unsigned int frame);
+      void setFrame(string sequence,unsigned int framenum,SpriteFrame frame);
+	  SpriteFrame getFrame(string sequence,unsigned int framenum);
       SpriteSheet();
     };
 

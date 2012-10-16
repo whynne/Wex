@@ -16,9 +16,9 @@ SpriteSheet::SpriteSheet()
 	
 }
 
-SpriteFrame getFrame(string sequence,unsigned int frame)
+SpriteFrame SpriteSheet::getFrame(string sequence,unsigned int framenum)
 {
-
+	return sequences[sequence][framenum];
 }
 
 unsigned int SpriteSheet::getSequenceLength(string name)
@@ -26,9 +26,9 @@ unsigned int SpriteSheet::getSequenceLength(string name)
 	return sequences.at(name).size();
 }
 
-SpriteSheet* Sprite::getSpriteSheet()
+void SpriteSheet::setFrame(string sequence,unsigned int framenum,SpriteFrame frame)
 {
-	return targetspritesheet;
+
 }
 
 
@@ -54,6 +54,12 @@ ColorRGBA::ColorRGBA(float r, float g, float b, float a)
 
 Sprite::Sprite()
 {
+	//Default sprite is degenerate quad.
+	vertices[0] = Point3d(0,0,0);
+	vertices[1] = Point3d(0,0,0);
+	vertices[2] = Point3d(0,0,0);
+	vertices[3] = Point3d(0,0,0);
+
 	targetspritesheet = 0;
 	frame = 0;
 	accumulator = 0.0;
@@ -115,6 +121,16 @@ Point3d Sprite::getOffset()
 SpriteFrame Sprite::getSpriteFrame()
 {
 	return targetspritesheet->getFrame(sequence,frame);
+}
+
+void Sprite::setSpriteFrame(unsigned int frame)
+{
+	
+}
+
+SpriteSheet* Sprite::getSpriteSheet()
+{
+	return targetspritesheet;
 }
 
 /*=====================

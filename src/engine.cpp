@@ -23,9 +23,7 @@ bool GameEngine::init()
     //SDL/OpenGL initializations
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )					 // Initialize SDL
-    {
         return false;
-    }
     while(true)
     {
         if(SDL_WasInit(SDL_INIT_VIDEO) != 0)
@@ -33,7 +31,7 @@ bool GameEngine::init()
         else
           cout << "Still not initialized!" << endl;
     }
-    SDL_WM_SetCaption( "Dicktris", NULL );
+    SDL_WM_SetCaption( "Wex", NULL );
 
 
     glClearColor( 0.0, 0.0, 0.0, 0.0 ); 
