@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <fstream>
 #include "SDL/SDL.h"
-#include "json/libjson.h"
+//#include "json/libjson.h"
 #include "opengl.h"
 #include "timer.h" 
 #include "vec.h"

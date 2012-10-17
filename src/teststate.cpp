@@ -22,16 +22,16 @@ void TestState::init(Controller &maincontrol)
   FILE *f = 0;
 
   // Open for binary reading
-  f = fopen("whenwillitend.ogg","rb");
-  cout << f << endl;
-
+ 
   vorbis_info *pInfo;
   OggVorbis_File oggFile;
 
-  ov_fopen("whenwillitend.ogg",&oggFile);
+  ov_fopen("time2learn.ogg",&oggFile);
 
    // Get some information about the OGG file
   pInfo = ov_info(&oggFile, -1);
+  if(pInfo == 0)
+	  return;
 
   // Check the number of channels... always use 16-bit samples
   if (pInfo->channels == 1)
@@ -50,11 +50,17 @@ void TestState::init(Controller &maincontrol)
     bufferData.insert(bufferData.end(), array, array + bytes);
   } while (bytes > 0);
 
+
 	  // Upload sound data to buffer
   alBufferData(bufferID, format, &bufferData[0], static_cast < ALsizei > (bufferData.size()), freq);
 
   // Attach sound buffer to source
   alSourcei(sourceID, AL_BUFFER, bufferID);
+
+  
+
+
+
 
   // Finally, play the sound!!!
   alSourcePlay(sourceID);
@@ -83,7 +89,7 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
-	
+    alSourcef(sourceID, AL_PITCH, 1.3);
 }
 
 void TestState::draw()
