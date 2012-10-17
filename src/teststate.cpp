@@ -28,7 +28,7 @@ void TestState::init(Controller &maincontrol)
   vorbis_info *pInfo;
   OggVorbis_File oggFile;
 
-  ov_open(f, &oggFile, NULL, 0);
+  ov_fopen("whenwillitend.ogg",&oggFile);
 
    // Get some information about the OGG file
   pInfo = ov_info(&oggFile, -1);
