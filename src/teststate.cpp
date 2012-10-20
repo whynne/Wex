@@ -7,6 +7,8 @@ void TestState::init(Controller &maincontrol)
   // Initialize the OpenAL library
   alutInit(0,0);
 
+  cout << alutGetErrorString(alutGetError()) << endl;
+
   // Create sound buffer and source
   alGenBuffers(1, &bufferID);
   alGenSources(1, &sourceID);
@@ -89,7 +91,7 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
-    alSourcef(sourceID, AL_PITCH, 1.3);
+    alSourcef(sourceID, AL_PITCH, sin(t)*.5 + 1.0);
 }
 
 void TestState::draw()
