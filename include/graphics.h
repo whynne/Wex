@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <fstream>
 #include "SDL/SDL.h"
+#include "ft2build.h"
+#include FT_FREETYPE_H
 //#include "json/libjson.h"
 #include "opengl.h"
 #include "timer.h" 
@@ -81,19 +83,27 @@ namespace graphics
 
 	class Quad
 	{
+	protected:
+		double       height;
+	    double       width;
+	    ColorRGBA    color;
 	public:
-		Point3d vertices[4];
+		ColorRGBA     getColor();
+	    void          setColor(ColorRGBA color);
+		double        getHeight();
+		void          setHeight(double height);
+		double        getWidth();
+		void          setWidth(double width);
+		Point3d       getMidPoint();
+
+		Quad();
+		Quad(double height,double width,ColorRGBA color);
 	};
 
 	class Sprite : public Quad
 	{
 	private:
-	  Point3d     offset;
-	  float       rotate;
-	  float       xscale;
-	  float       yscale;
-	  ColorRGBA   color;
-
+	  Point3d      offset;
 	  string       sequence;
 	  unsigned int sequencelength;
 	  double       frametime;
@@ -110,12 +120,6 @@ namespace graphics
 	  void          setSpriteFrame(unsigned int frame);
 	  Point3d       getOffset();
 	  void          setOffset(Point3d offset);
-	  ColorRGBA     getColor();
-	  void          setColor(ColorRGBA color);
-	  void          setRotate(float rotate);
-	  void          setScaleX(float scalefactor);
-	  void          setScaleY(float scalefactor);
-
 
 	  void play(double delta);
 	  void playOnce();
@@ -124,6 +128,13 @@ namespace graphics
 	  void changeSequence(string sequence);
 	  void changeSpriteSheet(SpriteSheet *newsheet);
 	  void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
+	};
+
+	class Font : public SpriteSheet
+	{
+	private:
+	public:
+
 	};
 
 	class BitmapFont
@@ -152,8 +163,10 @@ namespace graphics
 	
 	public:
 	
-		void       addToBuffer(Sprite* animation,Point3d position);
-		Point3d*   get_vertbuffer();
+		void       addToBuffer(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
+		void       addToBuffer(Quad* quad,Point3d position,double xscale,double yscale,double rotate);
+
+		Point3d*   getVertbuffer();
 		TexCoord*  getTexCoordBuffer();
 		ColorRGBA* getColorBuffer();
 		GLint      getBufferLength();
@@ -198,9 +211,13 @@ namespace graphics
 		void    moveCameraRelative(Point3d movementvector);
 		void    moveCameraTowards(Point3d position);
 
-	  	void    draw(Sprite* sprite,Point3d position); 
-		void    drawFixed(Sprite* sprite,Point3d position);
-			    
+	  	void    drawSprite(Sprite* sprite,Point3d position);
+		void    drawSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
+		void    drawFixedSprite(Sprite* sprite,Point3d position);
+		void    drawFixedSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
+	    void    drawQuad(Quad* quad,Point3d position,double xscale,double yscale,double rotate);
+
+
 		void    drawText(std::string text, Point3d position, GLint space);                   //Draws white text.
 		//void   drawText(std::string text, Point3d position, GLint space, ColorRGBA color);  //Draws colored text.
 		void    drawBuffer();

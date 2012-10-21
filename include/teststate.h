@@ -5,6 +5,7 @@
 #define AUDIO_BUFFER_SIZE   32768     // 32 KB buffers
 
 
+#include "freetype/freetype.h"
 #include "AL/al.h"
 #include "AL/alut.h"
 #include "vorbis/vorbisfile.h"
@@ -15,6 +16,7 @@
 class TestState : public EngineState
 {
 private:
+	Quad  square;
 	ALint state;                // The state of the sound source
     ALuint bufferID;            // The OpenAL sound buffer ID
     ALuint sourceID;            // The OpenAL sound source

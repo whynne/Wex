@@ -18,8 +18,8 @@ private:
 	Point3d _position;
 	ColorRGBA _color;
 
-	double _yspacing;
-	double _xspacing;
+	double yspacing;
+	double xspacing;
 
 	double _rows;
 	double _columns;

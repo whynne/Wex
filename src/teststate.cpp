@@ -4,6 +4,8 @@
 
 void TestState::init(Controller &maincontrol)
 {
+  square = Quad(400,400,ColorRGBA(1,1,1,1));
+
   // Initialize the OpenAL library
   alutInit(0,0);
 
@@ -91,7 +93,10 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
+	glBindTexture(GL_TEXTURE_2D, -1);
+	RENDERER->drawQuad(&square,Point3d(0,0,0),1,1,1);
     alSourcef(sourceID, AL_PITCH, sin(t)*.5 + 1.0);
+	RENDERER->drawBuffer();
 }
 
 void TestState::draw()

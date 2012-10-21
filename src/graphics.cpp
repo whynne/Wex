@@ -31,9 +31,59 @@ void SpriteSheet::setFrame(string sequence,unsigned int framenum,SpriteFrame fra
 
 }
 
+/*=====================
+
+Quad definitions
+
+=====================*/
+Quad::Quad()
+{
+	this->height = 10;
+	this->width = 10;
+	this->color = ColorRGBA(1,1,1,1);
+}
+
+Quad::Quad(double height,double width,ColorRGBA color)
+{
+	this->height = height;
+	this->width = width;
+	this->color = color;
+}
+
+ColorRGBA Quad::getColor()
+{
+	return color;
+}
+
+double Quad::getHeight()
+{
+	return height;
+}
+
+void  Quad::setHeight(double height)
+{
+	this->height = height;
+}
+
+double Quad::getWidth()
+{
+	return width;
+}
+
+void  Quad::setWidth(double width)
+{
+	this->width = width;
+}
+
+Point3d Quad::getMidPoint()
+{
+	return Point3d(width/2,height/2,0);
+}
 
 /*=====================
+
 Sprite definitions
+
 =====================*/
 
 ColorRGBA::ColorRGBA()
@@ -55,11 +105,8 @@ ColorRGBA::ColorRGBA(float r, float g, float b, float a)
 Sprite::Sprite()
 {
 	//Default sprite is degenerate quad.
-	vertices[0] = Point3d(0,0,0);
-	vertices[1] = Point3d(0,0,0);
-	vertices[2] = Point3d(0,0,0);
-	vertices[3] = Point3d(0,0,0);
-
+	height = 0;
+	width = 0;
 	targetspritesheet = 0;
 	frame = 0;
 	accumulator = 0.0;
@@ -106,11 +153,6 @@ void Sprite::rewind()
 {
 	frame = 0;
 	accumulator = 0;
-}
-
-ColorRGBA Sprite::getColor()
-{
-	return color;
 }
 
 Point3d Sprite::getOffset()
@@ -281,8 +323,44 @@ Texture::Texture(){
 SpriteSheet Batcher definitions
 =====================*/
 
+void SpriteBatch::addToBuffer(Quad* quad,Point3d position,double xscale,double yscale,double rotate)
+{
+	//Get initial points
+	vertexbuffer[bufferpos+0] = Point3d(0,0,0);
+	vertexbuffer[bufferpos+1] = Point3d(quad->getWidth(),0,0);
+	vertexbuffer[bufferpos+2] = Point3d(quad->getWidth(),quad->getHeight(),0);
+	vertexbuffer[bufferpos+3] = Point3d(0,quad->getHeight(),0);
+	/*
+	//Rotate about center
+	vertexbuffer[bufferpos+0].rotate(quad->getMidPoint(),rotate);
+	vertexbuffer[bufferpos+1].rotate(quad->getMidPoint(),rotate);
+	vertexbuffer[bufferpos+2].rotate(quad->getMidPoint(),rotate);
+	vertexbuffer[bufferpos+3].rotate(quad->getMidPoint(),rotate);
+	
+    //Scale
+	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] * Point3d(xscale,yscale,0);
+	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] * Point3d(xscale,yscale,0);
+	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] * Point3d(xscale,yscale,0);
+	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] * Point3d(xscale,yscale,0);
+	
+	//Translate
+	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] + position;
+	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] + position;
+	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] + position;
+	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] + position;
 
-void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position)
+	*/
+
+	//Color
+	colorbuffer[bufferpos+0] = quad->getColor();
+	colorbuffer[bufferpos+1] = quad->getColor();
+	colorbuffer[bufferpos+2] = quad->getColor();
+	colorbuffer[bufferpos+3] = quad->getColor();
+
+	bufferpos += 4;
+}
+
+void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate)
 {
 
 	if (sprite == 0 || sprite->getSpriteSheet() == 0)
@@ -298,19 +376,31 @@ void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position)
 	const double   height = sprite->getSpriteSheet()->getHeight();
 	const double   width  = sprite->getSpriteSheet()->getWidth();
 
+		//Get initial points
+	vertexbuffer[bufferpos+0] = Point3d(0,0,0);
+	vertexbuffer[bufferpos+1] = Point3d(sprite->getWidth(),0,0);
+	vertexbuffer[bufferpos+2] = Point3d(sprite->getWidth(),sprite->getHeight(),0);
+	vertexbuffer[bufferpos+3] = Point3d(0,sprite->getHeight(),0);
 
-
-	vertexbuffer[bufferpos+0] = position + sprite->getOffset();
-	vertexbuffer[bufferpos+1] = topright * height;
-	vertexbuffer[bufferpos+2] = bottomright * height;
-	vertexbuffer[bufferpos+3] = bottomleft * height;
+	//Rotate about center
+	vertexbuffer[bufferpos+0].rotate(sprite->getMidPoint(),rotate);
+	vertexbuffer[bufferpos+1].rotate(sprite->getMidPoint(),rotate);
+	vertexbuffer[bufferpos+2].rotate(sprite->getMidPoint(),rotate);
+	vertexbuffer[bufferpos+3].rotate(sprite->getMidPoint(),rotate);
 	
-	texcoordbuffer[bufferpos+0] = sprite->getSpriteFrame().texcoords[0];
-	texcoordbuffer[bufferpos+1] = sprite->getSpriteFrame().texcoords[1];
-	texcoordbuffer[bufferpos+2] = sprite->getSpriteFrame().texcoords[2];
-	texcoordbuffer[bufferpos+3] = sprite->getSpriteFrame().texcoords[3];
+    //Scale
+	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] * Point3d(xscale,yscale,0);
+	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] * Point3d(xscale,yscale,0);
+	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] * Point3d(xscale,yscale,0);
+	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] * Point3d(xscale,yscale,0);
 
+	//Translate
+	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] + position;
+	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] + position;
+	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] + position;
+	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] + position;
 	
+	//Color
 	colorbuffer[bufferpos+0] = sprite->getColor();
 	colorbuffer[bufferpos+1] = sprite->getColor();
 	colorbuffer[bufferpos+2] = sprite->getColor();
@@ -319,7 +409,7 @@ void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position)
 	bufferpos += 4;
 }
 
-Point3d* SpriteBatch::get_vertbuffer()
+Point3d* SpriteBatch::getVertbuffer()
 {
 	return vertexbuffer;
 }
@@ -375,7 +465,7 @@ Renderer::Renderer()
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 	
-		glVertexPointer(3,GL_DOUBLE, 0,_vertbuffer.get_vertbuffer());
+		glVertexPointer(3,GL_DOUBLE, 0,_vertbuffer.getVertbuffer());
 		glTexCoordPointer(2,GL_FLOAT, 0,_vertbuffer.getTexCoordBuffer());
 		glColorPointer(4,GL_FLOAT,0,_vertbuffer.getColorBuffer());
 		
@@ -384,31 +474,66 @@ Renderer::Renderer()
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-void Renderer::draw(Sprite* animation,Point3d position)
-{
-	assert(animation != 0);
-
-	if(_vertbuffer.isFull())
-	{
-			drawBuffer();
-			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(animation,position-_camera);
-	}
-	else
-		_vertbuffer.addToBuffer(animation,position-_camera);
-}
-
-void Renderer::drawFixed(Sprite* animation,Point3d position)
+void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
 {
 	if(_vertbuffer.isFull())
 	{
 			drawBuffer();
 			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(animation,position);
+			_vertbuffer.addToBuffer(animation,position-_camera,xscale,yscale,rotate);
 	}
 	else
-		_vertbuffer.addToBuffer(animation,position);
+		_vertbuffer.addToBuffer(animation,position-_camera,xscale,yscale,rotate);
 }
+
+void Renderer::drawSprite(Sprite* animation,Point3d position)
+{
+	if(_vertbuffer.isFull())
+	{
+			drawBuffer();
+			_vertbuffer.reset();
+			_vertbuffer.addToBuffer(animation,position-_camera,1.0,1.0,0);
+	}
+	else
+		_vertbuffer.addToBuffer(animation,position-_camera,1.0,1.0,0);
+}
+
+void Renderer::drawFixedSprite(Sprite* animation,Point3d position)
+{
+	if(_vertbuffer.isFull())
+	{
+			drawBuffer();
+			_vertbuffer.reset();
+			_vertbuffer.addToBuffer(animation,position,1.0,1.0,0);
+	}
+	else
+		_vertbuffer.addToBuffer(animation,position,1.0,1.0,0);
+}
+
+void Renderer::drawFixedSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
+{
+	if(_vertbuffer.isFull())
+	{
+			drawBuffer();
+			_vertbuffer.reset();
+			_vertbuffer.addToBuffer(animation,position,xscale,yscale,rotate);
+	}
+	else
+		_vertbuffer.addToBuffer(animation,position,xscale,yscale,rotate);
+}
+
+void Renderer::drawQuad(Quad* quad,Point3d position,double xscale,double yscale,double rotate)
+{
+	if(_vertbuffer.isFull())
+	{
+			drawBuffer();
+			_vertbuffer.reset();
+			_vertbuffer.addToBuffer(quad,position,xscale,yscale,rotate);
+	}
+	else
+		_vertbuffer.addToBuffer(quad,position,xscale,yscale,rotate);
+}
+
 
 void Renderer::drawBuffer()
 {
@@ -436,21 +561,21 @@ void Renderer::drawText(std::string text,Point3d position, GLint space)
 	{
 		character.changeSpriteSheet(&fonts[0]._charactersprites[(int)text[i]]);
 
-		drawFixed(&character,Point3d(position._x+(i*space),position._y,0));
+		drawFixed(&character,Point3d(position.x+(i*space),position.y,0));
 	}
 	*/
 }
 void Renderer::moveCameraTowards(Point3d position)
 {
-	if (_camera._x < position._x) // camera is deeper than current position
-		_camera._x += (position._x-_camera._x)/8;
-	if (_camera._x > position._x) //camera is higher than current position
-		_camera._x -= (_camera._x-position._x)/32;
+	if (_camera.x < position.x) // camera is deeper than current position
+		_camera.x += (position.x-_camera.x)/8;
+	if (_camera.x > position.x) //camera is higher than current position
+		_camera.x -= (_camera.x-position.x)/32;
 
-	if (_camera._y < position._y) // camera is deeper than current position
-		_camera._y += (position._y-_camera._y)/8;
-	if (_camera._y > position._y) //camera is higher than current position
-		_camera._y -= (_camera._y-position._y)/32;
+	if (_camera.y < position.y) // camera is deeper than current position
+		_camera.y += (position.y-_camera.y)/8;
+	if (_camera.y > position.y) //camera is higher than current position
+		_camera.y -= (_camera.y-position.y)/32;
 }
 
 Renderer* Renderer::Instance()
@@ -459,8 +584,6 @@ Renderer* Renderer::Instance()
 		_singletonRenderer = new Renderer;
 	return _singletonRenderer;
 }
-
-/*
 
 GLint Renderer::loadShader(std::string vertexfilename,std::string fragmentfilename)
 {
@@ -574,5 +697,3 @@ GLint Renderer::loadShader(std::string vertexfilename,std::string fragmentfilena
         cout << "Shader program successfully linked!" << endl;
 	return programhandle;
 }
-
-*/

@@ -32,11 +32,11 @@ void Console::draw()
 	StringListIt pos;
 	double yoffset = 0;
 
-	for(pos = _topline;pos != _linebuffer.end();pos++,yoffset-=_yspacing)
+	for(pos = _topline;pos != _linebuffer.end();pos++,yoffset-=yspacing)
 	{
 		glBindTexture(GL_TEXTURE_2D,2);
 		cout << "Trying to draw the console but it's not fully implemented, ya dummy!" << endl;
-		//Renderer::Instance()->drawText(*pos,_position-Point3d(0,yoffset,0),_xspacing,_color);
+		//Renderer::Instance()->drawText(*pos,_position-Point3d(0,yoffset,0),xspacing,_color);
 	}
 }
 
@@ -47,8 +47,8 @@ void Console::setPosition(Point3d position)
 
 Console::Console()
 {
-	_xspacing = 10;
-	_yspacing = 15;
+	xspacing = 10;
+	yspacing = 15;
 	_rows = 5;
 	_topline = _linebuffer.begin();
 	_color = ColorRGBA(1.0,1.0,0,1.0);

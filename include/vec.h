@@ -8,59 +8,67 @@ template <class T>
 class Vec2
 {
 public:
-	T _x;
-	T _y;
+	T x;
+	T y;
 
 	Vec2();
 	Vec2(T x,T y);
 
+	Vec2<T> rotate2(Vec2<T> pivot,float theta)
+	{
+		Vec2<T> result;
+		result.x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
+		result.y = pivot.y + (x - pivot.x) * sin(theta) - (y - pivot.y) * cos(theta);
+	}
+
+
 	friend Vec2<T> operator*(const Vec2<T> &op1,const Vec2<T> &op2)
     {	
-		return Vec3<T>(op1._x * op2._x,op1._y * op2._y);
+		return Vec3<T>(op1.x * op2.x,op1.y * op2.y);
     };
     friend Vec2<T> operator*(const Vec2<T> &op1,const T &op2)
     {	
-    	return Vec2<T>(op1._x * op2,op1._y * op2);
+    	return Vec2<T>(op1.x * op2,op1.y * op2);
     };
     friend Vec2<T> operator*(const T &op1,const Vec2<T> &op2)
     {	
-		return Vec2<T>(op1 * op2._x,op1 * op2._y);
+		return Vec2<T>(op1 * op2.x,op1 * op2.y);
     };
     friend Vec2<T> operator/(const Vec2<T> &op1,const Vec2<T> &op2)
     {	
-    	return Vec2<T>(op1._x / op2._x,op1._y / op2._y);
+    	return Vec2<T>(op1.x / op2.x,op1.y / op2.y);
     };
     friend Vec2<T> operator/(const Vec2<T> &op1,const T& op2)
     {	
-    	return Vec2<T>(op1._x / op2,op1._y / op2);
+    	return Vec2<T>(op1.x / op2,op1.y / op2);
     };
     friend Vec2<T> operator/(const T &op1,const Vec2<T> &op2)
     {	
-    	return Vec2<T>(op1 / op2._x,op1 / op2._y);
+    	return Vec2<T>(op1 / op2.x,op1 / op2.y);
     };
     friend Vec2<T> operator+(const Vec2<T> &op1,const Vec2<T> &op2)
     {	
-    	return Vec2<T>(op1._x + op2._x,op1._y + op2._y);
+    	return Vec2<T>(op1.x + op2.x,op1.y + op2.y);
     };
     friend Vec2<T> operator+(const Vec2<T> &op1,const T& op2)
     {	
-    	return Vec2<T>(op1._x + op2,op1._y + op2);
+    	return Vec2<T>(op1.x + op2,op1.y + op2);
     };
     friend Vec2<T> operator+(const T &op1,const Vec2<T> &op2)
     {	
-    	return Vec2<T>(op1 + op2._x,op1 + op2._y);
+    	return Vec2<T>(op1 + op2.x,op1 + op2.y);
     };
     friend Vec2<T> operator-(const Vec2<T> &op1,const Vec2<T> &op2)
     {	
-    	return Vec2<T>(op1._x - op2._x,op1._y - op2._y);
+    	return Vec2<T>(op1.x - op2.x,op1.y - op2.y);
     };
     friend Vec2<T> operator-(const Vec2<T> &op1,const T& op2)
     {	
-    	return Vec2<T>(op1._x - op2,op1._y - op2);
+    	return Vec2<T>(op1.x - op2,op1.y - op2);
     };
     friend Vec2<T> operator-(const T &op1,const Vec2<T> &op2)
     {	
-    	return Vec2<T>(op1 - op2._x,op1 - op2._y);
+    	return Vec2<T>(op1 - op2.x,op1 - op2.y);
     };
 };
 
@@ -69,9 +77,9 @@ template <class T>
 class Vec3
 {
 public:
-	T _x;
-	T _y;
-	T _z;
+	T x;
+	T y;
+	T z;
 
 	Vec3();
 	Vec3(T x,T y,T z);
@@ -80,106 +88,112 @@ public:
 
 	Vec3<T> operator=(const Vec2<T> &op2)
     {	
-		return Vec3<T>(op2._x,op2._y,this->_z);
+		return Vec3<T>(op2.x,op2.y,this->z);
     };
+
+	void rotate(Vec3<T> pivot,float theta)
+	{
+		x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
+		y = pivot.y + (x - pivot.x) * sin(theta) - (y - pivot.y) * cos(theta);
+	}
 
 	//OPERATOR OVERLOADS
 
 	friend Vec3<T> operator*(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
-		return Vec3<T>(op1._x * op2._x,op1._y * op2._y,op1._z * op2._z);
+		return Vec3<T>(op1.x * op2.x,op1.y * op2.y,op1.z * op2.z);
     };
     friend Vec3<T> operator*(const Vec3<T> &op1,const T& op2)
     {	
-    	return Vec3<T>(op1._x * op2,op1._y * op2,op1._z * op2);
+    	return Vec3<T>(op1.x * op2,op1.y * op2,op1.z * op2);
     };
     friend Vec3<T> operator*(const T &op1,const Vec3<T> &op2)
     {	
-		return Vec3<T>(op1 * op2._x,op1 * op2._y,op1 * op2._z);
+		return Vec3<T>(op1 * op2.x,op1 * op2.y,op1 * op2.z);
     };
     friend Vec3<T> operator/(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
-    	return Vec3<T>(op1._x / op2._x,op1._y / op2._y,op1._z / op2._z);
+    	return Vec3<T>(op1.x / op2.x,op1.y / op2.y,op1.z / op2.z);
     };
     friend Vec3<T> operator/(const Vec3<T> &op1,const T& op2)
     {	
-    	return Vec3<T>(op1._x / op2,op1._y / op2,op1._z / op2);
+    	return Vec3<T>(op1.x / op2,op1.y / op2,op1.z / op2);
     };
     friend Vec3<T> operator/(const T &op1,const Vec3<T> &op2)
     {	
-		return Vec3<T>(op1 / op2._x,op1 / op2._y,op1 / op2._z);
+		return Vec3<T>(op1 / op2.x,op1 / op2.y,op1 / op2.z);
     };
     friend Vec3<T> operator+(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
-    	return Vec3<T>(op1._x + op2._x,op1._y + op2._y,op1._z + op2._z);
+    	return Vec3<T>(op1.x + op2.x,op1.y + op2.y,op1.z + op2.z);
     };
     friend Vec3<T> operator+(const Vec3<T> &op1,const T& op2)
     {	
-    	return Vec3<T>(op1._x + op2,op1._y + op2,op1._z + op2);
+    	return Vec3<T>(op1.x + op2,op1.y + op2,op1.z + op2);
     };
     friend Vec3<T> operator+(const T &op1,const Vec3<T> &op2)
     {	
-		return Vec3<T>(op1 + op2._x,op1 + op2._y,op1 + op2._z);
+		return Vec3<T>(op1 + op2.x,op1 + op2.y,op1 + op2.z);
     };
     friend Vec3<T> operator-(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
-    	return Vec3<T>(op1._x - op2._x,op1._y - op2._y,op1._z - op2._z);
+    	return Vec3<T>(op1.x - op2.x,op1.y - op2.y,op1.z - op2.z);
     };
     friend Vec3<T> operator-(const Vec3<T> &op1,const T& op2)
     {	
-    	return Vec3<T>(op1._x - op2,op1._y - op2,op1._z - op2);
+    	return Vec3<T>(op1.x - op2,op1.y - op2,op1.z - op2);
     };
 	friend Vec3<T> operator-(const T &op1,const Vec3<T> &op2)
     {	
-		return Vec3<T>(op1 - op2._x,op1 - op2._y,op1 - op2._z);
+		return Vec3<T>(op1 - op2.x,op1 - op2.y,op1 - op2.z);
     };
 
 	friend T dot(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
-		return (op1._x * op2._x + op1._y * op2._y + op1._z * op2._z);
+		return (op1.x * op2.x + op1.y * op2.y + op1.z * op2.z);
     };
 	friend Vec3<T> cross(const Vec3<T> &op1,const Vec3<T> &op2)
 	{
-		return Vec3<T>(op1._y*op2._z-op1._z-op2._y,
-			           op1._z*op2._x-op1._x-op1._z,
-					   op1._x*op2._y-op1._y-op2._x);
+		return Vec3<T>(op1.y*op2.z-op1.z-op2.y,
+			           op1.z*op2.x-op1.x-op1.z,
+					   op1.x*op2.y-op1.y-op2.x);
 	};
 };
 
 template <class T>
 Vec2<T>::Vec2()
 {
-	_x = 0;
-	_y = 0;
+	x = 0;
+	y = 0;
 }
 
 template <class T>
 Vec2<T>::Vec2(T x,T y)
 {
-	_x = x;
-	_y = y;
+	x = x;
+	y = y;
 }
 
 template <class T>
 Vec3<T>::Vec3()
 {
-	_x = 0;
-	_y = 0;
-	_z = 0;
+	x = 0;
+	y = 0;
+	z = 0;
 }
 
 template <class T>
 Vec3<T>::Vec3(T x,T y,T z)
 {
-	_x = x;
-	_y = y;
-	_z = z;
+	x = x;
+	y = y;
+	z = z;
 }
 
 template <class T>
 T Vec3<T>::normal()
 {
-	return sqrt(_x*_x+_y*_y+_z*_z);
+	return sqrt(x*x+y*y+z*z);
 }
 
 typedef Vec3<int>    Point3i;
