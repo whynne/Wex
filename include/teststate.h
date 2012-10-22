@@ -16,6 +16,10 @@
 class TestState : public EngineState
 {
 private:
+	GLint normalshader;
+	double rot;
+	double xscale;
+	double yscale;
 	Quad  square;
 	ALint state;                // The state of the sound source
     ALuint bufferID;            // The OpenAL sound buffer ID

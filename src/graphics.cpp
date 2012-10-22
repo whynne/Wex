@@ -55,6 +55,11 @@ ColorRGBA Quad::getColor()
 	return color;
 }
 
+void Quad::setColor(ColorRGBA color)
+{
+	this->color = color;
+}
+
 double Quad::getHeight()
 {
 	return height;
@@ -326,16 +331,33 @@ SpriteSheet Batcher definitions
 void SpriteBatch::addToBuffer(Quad* quad,Point3d position,double xscale,double yscale,double rotate)
 {
 	//Get initial points
-	vertexbuffer[bufferpos+0] = Point3d(0,0,0);
-	vertexbuffer[bufferpos+1] = Point3d(quad->getWidth(),0,0);
-	vertexbuffer[bufferpos+2] = Point3d(quad->getWidth(),quad->getHeight(),0);
-	vertexbuffer[bufferpos+3] = Point3d(0,quad->getHeight(),0);
-	/*
+	vertexbuffer[bufferpos+0].x = 0;
+	vertexbuffer[bufferpos+0].y = 0;
+	vertexbuffer[bufferpos+0].z = 0;
+
+	vertexbuffer[bufferpos+1].x = quad->getWidth();
+	vertexbuffer[bufferpos+1].y = 0;
+	vertexbuffer[bufferpos+1].z = 0;
+
+	vertexbuffer[bufferpos+2].x = quad->getWidth();
+	vertexbuffer[bufferpos+2].y = quad->getHeight();
+	vertexbuffer[bufferpos+2].z = 0;
+
+	vertexbuffer[bufferpos+3].x = 0;
+	vertexbuffer[bufferpos+3].y = quad->getHeight();
+	vertexbuffer[bufferpos+3].z = 0;
+
+	
 	//Rotate about center
 	vertexbuffer[bufferpos+0].rotate(quad->getMidPoint(),rotate);
 	vertexbuffer[bufferpos+1].rotate(quad->getMidPoint(),rotate);
 	vertexbuffer[bufferpos+2].rotate(quad->getMidPoint(),rotate);
 	vertexbuffer[bufferpos+3].rotate(quad->getMidPoint(),rotate);
+	
+	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] - quad->getMidPoint();
+	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] - quad->getMidPoint();
+	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] - quad->getMidPoint();
+	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] - quad->getMidPoint();
 	
     //Scale
 	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] * Point3d(xscale,yscale,0);
@@ -348,8 +370,8 @@ void SpriteBatch::addToBuffer(Quad* quad,Point3d position,double xscale,double y
 	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] + position;
 	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] + position;
 	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] + position;
-
-	*/
+	
+	
 
 	//Color
 	colorbuffer[bufferpos+0] = quad->getColor();

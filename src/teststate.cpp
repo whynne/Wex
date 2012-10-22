@@ -4,7 +4,8 @@
 
 void TestState::init(Controller &maincontrol)
 {
-  square = Quad(400,400,ColorRGBA(1,1,1,1));
+  normalshader = RENDERER->loadShader("regular.vert","regular.frag");
+  square = Quad(700,700,ColorRGBA(1,.5,.1,1));
 
   // Initialize the OpenAL library
   alutInit(0,0);
@@ -93,15 +94,25 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
-	glBindTexture(GL_TEXTURE_2D, -1);
-	RENDERER->drawQuad(&square,Point3d(0,0,0),1,1,1);
+	glClearColor(abs(sin(t*2)),0,0,1); 
     alSourcef(sourceID, AL_PITCH, sin(t)*.5 + 1.0);
-	RENDERER->drawBuffer();
+	rot += sin(t)*.05 + .07;
+	xscale = sin(t)*100;
+	yscale = sin(t);
+	square.setColor(ColorRGBA(abs(cos(t)),.5,abs(sin(t)),.1));
 }
 
 void TestState::draw()
 {
+	//glUseProgram(normalshader);
+	//glBindTexture(GL_TEXTURE_2D, -1);
+	
+	RENDERER->drawQuad(&square,Point3d(250+xscale,250,0),1,1,rot);
+	
 
+	glBlendEquation(GL_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	RENDERER->drawBuffer();
 }
 
 TestState::TestState()

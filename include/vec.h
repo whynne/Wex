@@ -93,8 +93,11 @@ public:
 
 	void rotate(Vec3<T> pivot,float theta)
 	{
-		x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
-		y = pivot.y + (x - pivot.x) * sin(theta) - (y - pivot.y) * cos(theta);
+		Point3d result;
+		result.x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
+		result.y = pivot.y + (x - pivot.x) * sin(theta) + (y - pivot.y) * cos(theta);
+		x = result.x;
+		y = result.y;
 	}
 
 	//OPERATOR OVERLOADS
@@ -185,9 +188,9 @@ Vec3<T>::Vec3()
 template <class T>
 Vec3<T>::Vec3(T x,T y,T z)
 {
-	x = x;
-	y = y;
-	z = z;
+	this->x = x;
+	this->y = y;
+	this->z = z;
 }
 
 template <class T>

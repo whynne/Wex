@@ -152,10 +152,6 @@ namespace graphics
 	class SpriteBatch
 	{
 	private:
-	
-		Point3d*   tempvertbuf;
-		TexCoord*  temptexbuf;
-		ColorRGBA* tempcolorbuf;
 		Point3d    vertexbuffer[BUFFER_SIZE];
 		TexCoord   texcoordbuffer[BUFFER_SIZE];
 		ColorRGBA  colorbuffer[BUFFER_SIZE];

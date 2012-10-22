@@ -34,7 +34,6 @@ bool GameEngine::init()
     SDL_WM_SetCaption( "Wex", NULL );
 
 
-    glClearColor( 0.0, 0.0, 0.0, 0.0 ); 
     SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP,SDL_SWSURFACE);
 
     if( SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_OPENGL ) == NULL )	// Set window properties, OpenGL is passed here
@@ -48,6 +47,8 @@ bool GameEngine::init()
 
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
     SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
+	
+	glClearColor( 1.0, 0.5, .5, 0.0 ); 
 
                                                                 // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
@@ -63,9 +64,11 @@ bool GameEngine::init()
     glScalef(1.0f, -1.0f, 1.0f);
     glMatrixMode( GL_PROJECTION );							    // Set the matrix mode to projection; controls how screen is displayed
     glLoadIdentity();											// Load the matrix identity for the projection matrix.
-    glScalef(1.0/256.0, -1.0/256.0, 1.0/256.0);
+
+	glScalef(1.0/256.0, -1.0/256.0, 1.0/256.0);
     glTranslatef(-256.0,-256.0,0.0);
-                                                            // to change the coordinate system.  it is currently cartesian. y+ goes up, y- down
+
+	// to change the coordinate system.  it is currently cartesian. y+ goes up, y- down
     glMatrixMode( GL_MODELVIEW );								// Set matrix mode to modelview; controls models that are shown on screen.
 
     glEnable (GL_BLEND);										//Enable blending
