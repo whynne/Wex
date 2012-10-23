@@ -1,5 +1,9 @@
 #include "graphics.h"
 
+#define SCREEN_HEIGHT 768	
+#define SCREEN_WIDTH  768
+#define SCREEN_BPP 32
+
 using namespace graphics;
 
 Renderer* Renderer::_singletonRenderer = NULL;
@@ -347,13 +351,6 @@ void SpriteBatch::addToBuffer(Quad* quad,Point3d position,double xscale,double y
 	vertexbuffer[bufferpos+3].y = quad->getHeight();
 	vertexbuffer[bufferpos+3].z = 0;
 
-	
-	//Rotate about center
-	vertexbuffer[bufferpos+0].rotate(quad->getMidPoint(),rotate);
-	vertexbuffer[bufferpos+1].rotate(quad->getMidPoint(),rotate);
-	vertexbuffer[bufferpos+2].rotate(quad->getMidPoint(),rotate);
-	vertexbuffer[bufferpos+3].rotate(quad->getMidPoint(),rotate);
-	
 	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] - quad->getMidPoint();
 	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] - quad->getMidPoint();
 	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] - quad->getMidPoint();
@@ -364,6 +361,14 @@ void SpriteBatch::addToBuffer(Quad* quad,Point3d position,double xscale,double y
 	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] * Point3d(xscale,yscale,0);
 	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] * Point3d(xscale,yscale,0);
 	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] * Point3d(xscale,yscale,0);
+
+	//Rotate about center
+	vertexbuffer[bufferpos+0].rotate(Point3d(0,0,0),rotate);
+	vertexbuffer[bufferpos+1].rotate(Point3d(0,0,0),rotate);
+	vertexbuffer[bufferpos+2].rotate(Point3d(0,0,0),rotate);
+	vertexbuffer[bufferpos+3].rotate(Point3d(0,0,0),rotate);
+	
+	
 	
 	//Translate
 	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] + position;
@@ -478,6 +483,80 @@ SpriteBatch::SpriteBatch()
 Renderer definitions
 =====================*/
 
+bool graphics::Init()
+{
+	 if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )					 // Initialize SDL
+        return false;
+    while(true)
+    {
+        if(SDL_WasInit(SDL_INIT_VIDEO) != 0)
+            break;
+        else
+          cout << "Still not initialized!" << endl;
+    }
+    SDL_WM_SetCaption( "Wex", NULL );
+    SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP,SDL_SWSURFACE);
+
+    if( SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_OPENGL ) == NULL )	// Set window properties, OpenGL is passed here
+    {
+        return false;
+    }
+    
+    cout << "Video mode set!" << endl;
+
+    SDL_EnableUNICODE(1);
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
+    SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
+	
+	glClearColor( 1.0,0.0,0.0,0.0 ); 
+
+                                                     // Set clear color.  This is what the buffer gets filled with when we call glClear
+    glClear(GL_COLOR_BUFFER_BIT);
+    SDL_GL_SwapBuffers();
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(true);
+    glDepthFunc(GL_LEQUAL);
+    glDepthRange(0.0f, 1.0f);
+    glViewport(0,0,SCREEN_HEIGHT,SCREEN_WIDTH);
+    glEnable (GL_BLEND);										//Enable blending
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);         //Set blending for our alpha-enabled textures
+                                                      
+    if( glGetError() != GL_NO_ERROR )						    // If we get any errors, return false.
+    {
+        return false;    
+    }
+
+    //Load resources here !!!
+
+    //Load extensions with GLEW
+
+    GLenum err = glewInit();
+
+    if(GLEW_OK != err)
+        std::cerr << "Error: " << glewGetErrorString(err) << endl;
+
+    if (GLEW_VERSION_1_3)
+        cout << "OpenGL 1.3 Supported!" << endl;
+    if (GLEW_VERSION_1_4)
+        cout << "OpenGL 1.4 Supported!" << endl;
+    if (glewIsSupported("GL_ARB_fragment_program"))
+        cout << "Fragment programs supported" << endl;
+    if (glewIsSupported("GL_ARB_vertex_program"))
+        cout << "Vertex programs supported" << endl;
+    if (glewIsSupported("GL_ARB_shading_language_100")) 
+    {  
+       int major, minor, revision;
+       const GLubyte* sVersion = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB);
+       if (glGetError() == GL_INVALID_ENUM)
+       {
+          major = 1; minor = 0; revision=51;
+       }
+       else
+       {
+          cout << "Using shading language: " << sVersion << endl;
+       }
+    }
+}
 
 Renderer::Renderer()
 {

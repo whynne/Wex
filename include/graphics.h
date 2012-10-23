@@ -27,6 +27,9 @@ const unsigned int BUFFER_SIZE = 4096;
 
 namespace graphics
 {
+
+    bool Init();
+
 	enum imageformat
     {
     	TYPE_TGA,
@@ -67,8 +70,6 @@ namespace graphics
 		Texture();
 
 	};
-
-
 
     class SpriteSheet : public Texture 
     {
@@ -201,8 +202,8 @@ namespace graphics
 		
 	
 	public:
-	
 		static  Renderer* Instance();
+
 		void    setCamera(Point3d cameraposition);
 		void    moveCameraRelative(Point3d movementvector);
 		void    moveCameraTowards(Point3d position);

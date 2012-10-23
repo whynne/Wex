@@ -108,10 +108,6 @@
     <ClInclude Include="..\..\include\teststate.h" />
     <ClInclude Include="..\..\include\timer.h" />
     <ClInclude Include="..\..\include\vec.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
-    <ClInclude Include="resource2.h" />
-    <ClInclude Include="resource3.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
