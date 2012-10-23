@@ -47,12 +47,12 @@ namespace graphics
 
 	struct ColorRGBA
 	{
-		float _r;
-		float _g;
-		float _b;
-		float _a;
+		GLfloat _r;
+		GLfloat _g;
+		GLfloat _b;
+		GLfloat _a;
 		ColorRGBA();
-		ColorRGBA(float r, float g, float b, float a);
+		ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 	};
 
 	class Texture
@@ -150,6 +150,13 @@ namespace graphics
 		BitmapFont(Texture& texture);          // generates font on construction
 	};
 
+	struct VertexData
+	{
+	    GLfloat x,y,z;
+		GLfloat u,v;
+		GLfloat r,g,b,a;
+	};
+
 	class SpriteBatch
 	{
 	private:
@@ -196,9 +203,13 @@ namespace graphics
 		Renderer();
 		Renderer&         operator=(Renderer const&){};
 
-		Point3d          _camera;
-		SpriteBatch      _vertbuffer;
-		static Renderer* _singletonRenderer;
+		Point3d          view;
+		SpriteBatch      spritebatch;
+		static Renderer* instance;
+
+		GLuint           vbovertex;
+		GLuint           vbotexture;
+		GLuint           vbocolor;
 		
 	
 	public:
@@ -218,8 +229,6 @@ namespace graphics
 		void    drawText(std::string text, Point3d position, GLint space);                   //Draws white text.
 		//void   drawText(std::string text, Point3d position, GLint space, ColorRGBA color);  //Draws colored text.
 		void    drawBuffer();
-
-		// Shader shit
 
 		GLint   loadShader(std::string vertexfilename,std::string fragmentfilename);
 		void    changeShader();

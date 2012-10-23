@@ -6,7 +6,7 @@
 
 using namespace graphics;
 
-Renderer* Renderer::_singletonRenderer = NULL;
+Renderer* Renderer::instance = NULL;
 
 GLubyte uncompressedtgaheader[12] = {0,0, 2,0,0,0,0,0,0,0,0,0};
 GLubyte compressedtgaheader[12]   = {0,0,10,0,0,0,0,0,0,0,0,0};
@@ -103,7 +103,7 @@ ColorRGBA::ColorRGBA()
 	_a = 1;
 }
 
-ColorRGBA::ColorRGBA(float r, float g, float b, float a)
+ColorRGBA::ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 {
 	_r = r;
 	_g = g;
@@ -508,7 +508,7 @@ bool graphics::Init()
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
     SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
 	
-	glClearColor( 1.0,0.0,0.0,0.0 ); 
+	glClearColor( 0.0,0.0,0.0,0.0 ); 
 
                                                      // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
@@ -560,97 +560,114 @@ bool graphics::Init()
 
 Renderer::Renderer()
 {
+		glGenBuffersARB( BUFFER_SIZE, &vbovertex);
+		glGenBuffersARB( BUFFER_SIZE, &vbotexture);
+		glGenBuffersARB( BUFFER_SIZE, &vbocolor);
+
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getVertbuffer(),GL_STREAM_DRAW_ARB);
+
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW_ARB);
+
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getColorBuffer(),GL_STREAM_DRAW_ARB);
+
+
+
+		/*
 		glEnable(GL_TEXTURE_2D);
 	
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 	
-		glVertexPointer(3,GL_DOUBLE, 0,_vertbuffer.getVertbuffer());
-		glTexCoordPointer(2,GL_FLOAT, 0,_vertbuffer.getTexCoordBuffer());
-		glColorPointer(4,GL_FLOAT,0,_vertbuffer.getColorBuffer());
+		glVertexPointer(3,GL_DOUBLE, 0,spritebatch.getVertbuffer());
+		glTexCoordPointer(2,GL_FLOAT, 0,spritebatch.getTexCoordBuffer());
+		glColorPointer(4,GL_FLOAT,0,spritebatch.getColorBuffer());
 		
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		*/
 }
 
 void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
 {
-	if(_vertbuffer.isFull())
+	if(spritebatch.isFull())
 	{
 			drawBuffer();
-			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(animation,position-_camera,xscale,yscale,rotate);
+			spritebatch.reset();
+			spritebatch.addToBuffer(animation,position-view,xscale,yscale,rotate);
 	}
 	else
-		_vertbuffer.addToBuffer(animation,position-_camera,xscale,yscale,rotate);
+		spritebatch.addToBuffer(animation,position-view,xscale,yscale,rotate);
 }
 
 void Renderer::drawSprite(Sprite* animation,Point3d position)
 {
-	if(_vertbuffer.isFull())
+	if(spritebatch.isFull())
 	{
 			drawBuffer();
-			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(animation,position-_camera,1.0,1.0,0);
+			spritebatch.reset();
+			spritebatch.addToBuffer(animation,position-view,1.0,1.0,0);
 	}
 	else
-		_vertbuffer.addToBuffer(animation,position-_camera,1.0,1.0,0);
+		spritebatch.addToBuffer(animation,position-view,1.0,1.0,0);
 }
 
 void Renderer::drawFixedSprite(Sprite* animation,Point3d position)
 {
-	if(_vertbuffer.isFull())
+	if(spritebatch.isFull())
 	{
 			drawBuffer();
-			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(animation,position,1.0,1.0,0);
+			spritebatch.reset();
+			spritebatch.addToBuffer(animation,position,1.0,1.0,0);
 	}
 	else
-		_vertbuffer.addToBuffer(animation,position,1.0,1.0,0);
+		spritebatch.addToBuffer(animation,position,1.0,1.0,0);
 }
 
 void Renderer::drawFixedSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
 {
-	if(_vertbuffer.isFull())
+	if(spritebatch.isFull())
 	{
 			drawBuffer();
-			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(animation,position,xscale,yscale,rotate);
+			spritebatch.reset();
+			spritebatch.addToBuffer(animation,position,xscale,yscale,rotate);
 	}
 	else
-		_vertbuffer.addToBuffer(animation,position,xscale,yscale,rotate);
+		spritebatch.addToBuffer(animation,position,xscale,yscale,rotate);
 }
 
 void Renderer::drawQuad(Quad* quad,Point3d position,double xscale,double yscale,double rotate)
 {
-	if(_vertbuffer.isFull())
+	if(spritebatch.isFull())
 	{
 			drawBuffer();
-			_vertbuffer.reset();
-			_vertbuffer.addToBuffer(quad,position,xscale,yscale,rotate);
+			spritebatch.reset();
+			spritebatch.addToBuffer(quad,position,xscale,yscale,rotate);
 	}
 	else
-		_vertbuffer.addToBuffer(quad,position,xscale,yscale,rotate);
+		spritebatch.addToBuffer(quad,position,xscale,yscale,rotate);
 }
 
 
 void Renderer::drawBuffer()
 {
 
-	if(_vertbuffer.getBufferLength() > 0)
+	if(spritebatch.getBufferLength() > 0)
 	{	
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 
-		glDrawArrays(GL_QUADS, 0, _vertbuffer.getBufferLength());
+		glDrawArrays(GL_QUADS, 0, spritebatch.getBufferLength());
 
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		_vertbuffer.reset();
+		spritebatch.reset();
 	}
 }
 
@@ -668,22 +685,22 @@ void Renderer::drawText(std::string text,Point3d position, GLint space)
 }
 void Renderer::moveCameraTowards(Point3d position)
 {
-	if (_camera.x < position.x) // camera is deeper than current position
-		_camera.x += (position.x-_camera.x)/8;
-	if (_camera.x > position.x) //camera is higher than current position
-		_camera.x -= (_camera.x-position.x)/32;
+	if (view.x < position.x) // camera is deeper than current position
+		view.x += (position.x-view.x)/8;
+	if (view.x > position.x) //camera is higher than current position
+		view.x -= (view.x-position.x)/32;
 
-	if (_camera.y < position.y) // camera is deeper than current position
-		_camera.y += (position.y-_camera.y)/8;
-	if (_camera.y > position.y) //camera is higher than current position
-		_camera.y -= (_camera.y-position.y)/32;
+	if (view.y < position.y) // camera is deeper than current position
+		view.y += (position.y-view.y)/8;
+	if (view.y > position.y) //camera is higher than current position
+		view.y -= (view.y-position.y)/32;
 }
 
 Renderer* Renderer::Instance()
 {
-	if(!_singletonRenderer)
-		_singletonRenderer = new Renderer;
-	return _singletonRenderer;
+	if(!instance)
+		instance = new Renderer;
+	return instance;
 }
 
 GLint Renderer::loadShader(std::string vertexfilename,std::string fragmentfilename)
