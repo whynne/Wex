@@ -1,9 +1,5 @@
 #include "graphics.h"
 
-#define SCREEN_HEIGHT 768	
-#define SCREEN_WIDTH  768
-#define SCREEN_BPP 32
-
 using namespace graphics;
 
 Renderer* Renderer::instance = NULL;
@@ -246,17 +242,11 @@ bool Texture::loadUncompressedTGA(char *filename)
 	bpp    = (GLuint)header2[4];										//read bpp and save
 
 	if((this->width <= 0) || (this->height <= 0) || ((bpp != 24) && (bpp !=32)))	//check to make sure the height, width, and bpp are valid
-	{
 		return false;
-	}
-	if(bpp == 24)									
-	{
+	if(bpp == 24)
 		type = GL_RGB;
-	}
 	else
-	{
 		type = GL_RGBA;
-	}
 	imagesize = ((bpp/8) * this->width * this->height);										//determine size in bytes of the image
 	imagedata = new GLubyte[imagesize];											//allocate memory for our imagedata variable
 	texturestream.read((char*)imagedata,imagesize);								//read according the the size of the image and save into imagedata 
@@ -478,6 +468,176 @@ SpriteBatch::SpriteBatch()
 	bufferpos = 0;
 }
 
+/*=====================
+Shader definitions
+=====================*/
+
+
+	const char* graphics::SAMPLER_NAME = "fs_Sampler0";
+	const char* graphics::TFS_TEXCOORD = "fs_TexCoord";
+	const char* graphics::TFS_COLOR    = "fs_Color";
+
+	const char* graphics::TVS_PROJECTION_MAT = "vs_Projection";
+	const char* graphics::TVS_MODEL_VIEW_MAT = "vs_ModelView";
+
+	const int   graphics::VERTEX_ATTRIBUTE_ID = 0;
+	const char* graphics::VERTEX_ATTRIBUTE_NAME = "vs_Vertex";
+
+	const int   graphics::TEXCOORD_ATTRIBUTE_ID = 1;
+	const char* graphics::TEXCOORD_ATTRIBUTE_NAME = "vs_TexCoord";
+
+	const int   graphics::COLOR_ATTRIBUTE_ID   = 2;
+	const char* graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
+
+	Shader::Shader(string filename) 
+	{
+		this->loadFromFile(filename);
+	}
+
+	Shader::Shader() 
+	{
+
+	}
+
+	void Shader::loadFromFile(std::string filename)
+	{
+		std::ifstream file;
+		GLchar* source;
+		unsigned int sourcelength;
+		
+		//Status variables
+		GLint compiled;
+	
+		//Open vertex file, read into a string
+	
+		file.open(filename,ios::binary|ios_base::ate);
+		sourcelength = file.tellg();
+		source = new GLchar[sourcelength+1];
+		file.seekg(ios::beg);
+		unsigned int i = 0;
+		while(file.good())
+		{
+			source[i] = file.get();
+			if(!file.eof())
+				i++;
+		}
+		source[sourcelength] = '\0';
+		
+		//Create a handle for our shader, then compile.
+	
+		handle = glCreateShader(GL_VERTEX_SHADER);
+
+		glShaderSource(handle, 1, (const GLchar**)&source, NULL);
+		glCompileShader(handle);
+		
+		glGetObjectParameterivARB(handle, GL_COMPILE_STATUS, &compiled);
+		if(compiled)
+			cout << "Shader " << filename << " compiled successfully!" << endl;
+		GLint blen = 0;	
+		GLsizei slen = 0;
+		
+		glGetShaderiv(handle, GL_INFO_LOG_LENGTH , &blen);       
+		
+		//If any errors, display log
+	
+		if (blen > 1)
+		{
+		    GLchar* compiler_log = new GLchar[blen];	
+		    glGetInfoLogARB(handle, blen, &slen, compiler_log);
+		    cout << "compiler_log:" << endl;
+		    cout << compiler_log;
+		    delete[] compiler_log;
+		}
+	}
+
+	Shader::~Shader() 
+	{
+		if (handle) glDeleteShader(handle);
+	}
+	ShaderProgram::ShaderProgram()
+	{
+	}
+
+	ShaderProgram::ShaderProgram(std::string vsfilename,std::string fsfilename) {
+		GLint linked = 100;
+		vs = new Shader(vsfilename);
+		fs = new Shader(fsfilename);
+		handle = glCreateProgram();
+		glAttachShader(handle, vs->GetHandle());
+		glAttachShader(handle, fs->GetHandle());
+		glLinkProgram(handle);
+		this->bindAttributes();
+		this->getUniformHandles();
+
+		glGetProgramiv(handle, GL_LINK_STATUS, &linked);
+		cout << "Program handle " << handle << endl;
+        if (linked == GL_TRUE)
+            cout << "Shader program successfully linked! " << linked << endl;
+		else
+			cout << "Failed to link program for some reason" << linked << endl;
+
+	}
+
+	ShaderProgram::~ShaderProgram() {
+		if (vs) delete vs;
+		if (fs) delete fs;
+		if (handle) glDeleteProgram(handle);
+	}
+
+	void ShaderProgram::enable(bool state) {
+
+			glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
+		    glVertexAttribPointer(VERTEX_ATTRIBUTE_ID, 3, GL_DOUBLE,0,sizeof(Point3d),0);
+			glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
+			glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID, 2, GL_DOUBLE, 0,sizeof(TexCoord),0);
+			glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
+			glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_DOUBLE,0,sizeof(ColorRGBA),0);
+		
+		if (state) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex_handle);
+			glUseProgram(handle);
+
+			Mat4 identity;
+			Mat4::Identity(identity);
+
+			Mat4 ortho;
+			Mat4::Ortho(ortho, 0, 0, (float)width, (float)height, 0, 1);
+
+			Mat4 proj_matrix;
+			identity.Multiply(proj_matrix, ortho);
+			
+			// The input texture should be on sampler 0.
+			glUniform1i(shader_tex_handle, GL_TEXTURE0);
+			glUniformMatrix4fv(shader_mat_proj_handle, 1, false, (float*)&proj_matrix);
+			glUniformMatrix4fv(shader_mat_mv_handle, 1, false, (float*)&identity);
+		} else {
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glUseProgram(0);
+		}
+	}
+
+	void ShaderProgram::getUniformHandles() {
+		glUseProgram(handle);
+		shader_mat_proj_handle = glGetUniformLocation(handle, TVS_PROJECTION_MAT);
+		shader_tex_handle      = glGetUniformLocation(handle, SAMPLER_NAME);
+		shader_mat_mv_handle   = glGetUniformLocation(handle, TVS_MODEL_VIEW_MAT);
+	}
+
+	void ShaderProgram::bindAttributes() {
+		glBindAttribLocation(handle, VERTEX_ATTRIBUTE_ID, VERTEX_ATTRIBUTE_NAME);
+		glBindAttribLocation(handle, TEXCOORD_ATTRIBUTE_ID, TEXCOORD_ATTRIBUTE_NAME);
+		glBindAttribLocation(handle, COLOR_ATTRIBUTE_ID, COLOR_ATTRIBUTE_NAME);
+	}
+	/*
+	void VertexShader::Enable(bool state) 
+	{
+
+	}
+	*/
+
+
+
 
 /*=====================
 Renderer definitions
@@ -508,7 +668,7 @@ bool graphics::Init()
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
     SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
 	
-	glClearColor( 0.0,0.0,0.0,0.0 ); 
+	glClearColor( 0.0,0.0,0.0,1.0 ); 
 
                                                      // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
@@ -539,10 +699,14 @@ bool graphics::Init()
         cout << "OpenGL 1.3 Supported!" << endl;
     if (GLEW_VERSION_1_4)
         cout << "OpenGL 1.4 Supported!" << endl;
+	if (GLEW_VERSION_1_5)
+        cout << "OpenGL 1.5 Supported!" << endl;
     if (glewIsSupported("GL_ARB_fragment_program"))
         cout << "Fragment programs supported" << endl;
     if (glewIsSupported("GL_ARB_vertex_program"))
         cout << "Vertex programs supported" << endl;
+	if (glewIsSupported("GL_ARB_vertex_buffer_object"))
+		cout << "VBOs supported" << endl;
     if (glewIsSupported("GL_ARB_shading_language_100")) 
     {  
        int major, minor, revision;
@@ -560,36 +724,28 @@ bool graphics::Init()
 
 Renderer::Renderer()
 {
-		glGenBuffersARB( BUFFER_SIZE, &vbovertex);
-		glGenBuffersARB( BUFFER_SIZE, &vbotexture);
-		glGenBuffersARB( BUFFER_SIZE, &vbocolor);
+		glEnable(GL_TEXTURE_2D);
+
+		glGenBuffers( 1, &vbovertex);
+		glGenBuffers( 1, &vbotexture);
+		glGenBuffers( 1, &vbocolor);
 
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
 		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getVertbuffer(),GL_STREAM_DRAW_ARB);
+	    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
+		glVertexAttribPointer(VERTEX_ATTRIBUTE_ID, 3, GL_DOUBLE, 0,0,0);
 
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
 		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW_ARB);
+		glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
+		glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID, 2, GL_FLOAT, 0,0,0);
 
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
 		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getColorBuffer(),GL_STREAM_DRAW_ARB);
+		glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
+		glVertexAttribPointer(COLOR_ATTRIBUTE_ID, 4,GL_FLOAT, 1,0,0);
 
-
-
-		/*
-		glEnable(GL_TEXTURE_2D);
-	
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-	
-		glVertexPointer(3,GL_DOUBLE, 0,spritebatch.getVertbuffer());
-		glTexCoordPointer(2,GL_FLOAT, 0,spritebatch.getTexCoordBuffer());
-		glColorPointer(4,GL_FLOAT,0,spritebatch.getColorBuffer());
-		
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		*/
+		cout << glewGetErrorString(glGetError()) << endl;
 }
 
 void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
@@ -658,16 +814,18 @@ void Renderer::drawBuffer()
 
 	if(spritebatch.getBufferLength() > 0)
 	{	
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(Point3d)*BUFFER_SIZE,spritebatch.getVertbuffer(),GL_STREAM_DRAW);
 
-		glDrawArrays(GL_QUADS, 0, spritebatch.getBufferLength());
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(TexCoord)*BUFFER_SIZE,spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
 
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		spritebatch.reset();
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(ColorRGBA)*BUFFER_SIZE,spritebatch.getColorBuffer(),GL_STREAM_DRAW);
+
+		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
+		
+		glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
 	}
 }
 
@@ -699,119 +857,6 @@ void Renderer::moveCameraTowards(Point3d position)
 Renderer* Renderer::Instance()
 {
 	if(!instance)
-		instance = new Renderer;
+		instance = new Renderer();
 	return instance;
-}
-
-GLint Renderer::loadShader(std::string vertexfilename,std::string fragmentfilename)
-{
-	//File streams for shader files
-	std::ifstream vertexfile;
-	std::ifstream fragmentfile;
-
-	//Source buffers
-	GLchar* vertexsource;
-	GLchar* fragmentsource;
-	unsigned int vsourcelength;
-	unsigned int fsourcelength;
-	
-	//Status variables
-
-	GLint vertexcompiled;
-	GLint fragmentcompiled;
-	GLint linked;
-
-	//Open vertex file, read into a string
-
-	vertexfile.open(vertexfilename,ios::binary|ios_base::ate);
-	vsourcelength = vertexfile.tellg();
-	vertexsource = new GLchar[vsourcelength+1];
-	vertexfile.seekg(ios::beg);
-	unsigned int i = 0;
-	while(vertexfile.good())
-	{
-		vertexsource[i] = vertexfile.get();
-		if(!vertexfile.eof())
-			i++;
-	}
-	vertexsource[vsourcelength] = '\0';
-	
-	//Create a handle for our shader, then compile.
-
-	GLuint vertexhandle = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexhandle, 1, (const GLchar**)&vertexsource, NULL);
-	glCompileShader(vertexhandle);
-	
-	glGetObjectParameterivARB(vertexhandle, GL_COMPILE_STATUS, &vertexcompiled);
-	if(vertexcompiled)
-		cout << "Vertex shader " << vertexfilename << " compiled successfully!" << endl;
-	GLint blen = 0;	
-	GLsizei slen = 0;
-	
-	glGetShaderiv(vertexhandle, GL_INFO_LOG_LENGTH , &blen);       
-	
-	//If any errors, display log
-
-	if (blen > 1)
-	{
-	    GLchar* compiler_log = new GLchar[blen];	
-	    glGetInfoLogARB(vertexhandle, blen, &slen, compiler_log);
-	    cout << "compiler_log:" << endl;
-	    cout << compiler_log;
-	    delete[] compiler_log;
-	}
-
-	//Repeat the process for our fragment shader
-
-	fragmentfile.open(fragmentfilename,ios::binary|ios_base::ate);
-	vsourcelength = fragmentfile.tellg();
-	fragmentsource = new GLchar[vsourcelength+1];
-	fragmentfile.seekg(ios::beg);
-	i = 0;
-	while(fragmentfile.good())
-	{
-		fragmentsource[i] = fragmentfile.get();
-		if(!fragmentfile.eof())
-			i++;
-	}
-	fragmentsource[vsourcelength] = '\0';
-	
-	//Create a handle for our shader, then compile.
-
-	GLuint fragmenthandle = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmenthandle, 1, (const GLchar**)&fragmentsource, NULL);
-	glCompileShader(fragmenthandle);
-	
-	glGetObjectParameterivARB(fragmenthandle, GL_COMPILE_STATUS, &fragmentcompiled);
-	if(fragmentcompiled)
-		cout << "fragment shader " << fragmentfilename << " compiled successfully!" << endl;
-	blen = 0;	
-	slen = 0;
-	
-	glGetShaderiv(fragmenthandle, GL_INFO_LOG_LENGTH , &blen);       
-	
-	//If any errors, display log
-
-	if (blen > 1)
-	{
-	    GLchar* compiler_log = new GLchar[blen];	
-	    glGetInfoLogARB(fragmenthandle, blen, &slen, compiler_log);
-	    cout << "compiler_log:" << endl;
-	    cout << compiler_log;
-	    delete[] compiler_log;
-	}
-
-	
-	//Attatch shaders to program object, link and return the handle
-	
-	GLint programhandle = glCreateProgram();
-	glAttachShader(programhandle, vertexhandle);
-	glAttachShader(programhandle, fragmenthandle);
-	glLinkProgram(programhandle);
-
-	
-    glGetProgramiv(programhandle, GL_LINK_STATUS, &linked);
-    if (linked)
-        cout << "Shader program successfully linked!" << endl;
-	return programhandle;
 }

@@ -87,6 +87,7 @@
     <ClCompile Include="..\..\src\enginestate.cpp" />
     <ClCompile Include="..\..\src\graphics.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\matrix.cpp" />
     <ClCompile Include="..\..\src\net.cpp" />
     <ClCompile Include="..\..\src\physics.cpp" />
     <ClCompile Include="..\..\src\teststate.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="..\..\include\engine.h" />
     <ClInclude Include="..\..\include\enginestate.h" />
     <ClInclude Include="..\..\include\graphics.h" />
+    <ClInclude Include="..\..\include\matrix.h" />
     <ClInclude Include="..\..\include\net.h" />
     <ClInclude Include="..\..\include\opengl.h" />
     <ClInclude Include="..\..\include\physics.h" />
@@ -111,9 +113,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Image.png" />
+    <None Include="regular.frag" />
+    <None Include="regular.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,10 +9,10 @@
 #include "SDL/SDL.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
-//#include "json/libjson.h"
 #include "opengl.h"
 #include "timer.h" 
 #include "vec.h"
+#include "matrix.h"
 
 using std::string;
 using std::cout;
@@ -23,6 +23,9 @@ using std::ios;
 using std::ios_base;
 using std::ifstream;
 
+const unsigned int SCREEN_HEIGHT = 768;
+const unsigned int SCREEN_WIDTH = 768;
+const unsigned int SCREEN_BPP = 32;
 const unsigned int BUFFER_SIZE = 4096;
 
 namespace graphics
@@ -180,6 +183,70 @@ namespace graphics
 		SpriteBatch();
 	};
 
+	class Shader {
+		unsigned int handle;
+	public:
+		void loadFromFile(std::string filename);
+		Shader();
+		Shader(string filename);
+		~Shader();
+		inline unsigned int GetHandle() const;
+	};
+
+	inline unsigned int Shader::GetHandle() const {
+		return handle;
+	}
+
+	extern const char* SAMPLER_NAME;
+	extern const char* TFS_TEXCOORD;
+	extern const char* TFS_COLOR;
+
+	extern const char* TVS_PROJECTION_MAT;
+	extern const char* TVS_MODEL_VIEW_MAT;
+	extern const int   VERTEX_ATTRIBUTE_ID;
+	extern const char* VERTEX_ATTRIBUTE_NAME;
+	extern const int   TEXCOORD_ATTRIBUTE_ID;
+	extern const char* TEXCOORD_ATTRIBUTE_NAME;
+	extern const int   COLOR_ATTRIBUTE_ID;
+	extern const char* COLOR_ATTRIBUTE_NAME;
+
+	class ShaderProgram {
+		unsigned int handle;
+		Shader* vs;
+		Shader* fs;
+		int width, height;
+		unsigned int tex_handle;
+		unsigned int shader_tex_handle;
+		unsigned int shader_mat_proj_handle;
+		unsigned int shader_mat_mv_handle;
+	public:
+		ShaderProgram(std::string vsfilename,std::string fsfilename);
+		ShaderProgram();
+		~ShaderProgram();
+		void enable(bool state);
+		inline unsigned int getHandle() const;
+		inline void setTexture(unsigned int tx_handle);
+		inline void setOutputSize(int width, int height);
+	private:
+		void getUniformHandles();
+		void bindAttributes();
+	};
+
+	// Inline functions
+
+	inline unsigned int ShaderProgram::getHandle() const {
+		return handle;
+	}
+
+	inline void ShaderProgram::setTexture(unsigned int handle) {
+		tex_handle = handle;
+	}
+
+	inline void ShaderProgram::setOutputSize(int width, int height) {
+		this->width  = width;
+		this->height = height;
+	}
+
 	class Resources
 	{
 	private:
@@ -227,10 +294,6 @@ namespace graphics
 
 
 		void    drawText(std::string text, Point3d position, GLint space);                   //Draws white text.
-		//void   drawText(std::string text, Point3d position, GLint space, ColorRGBA color);  //Draws colored text.
 		void    drawBuffer();
-
-		GLint   loadShader(std::string vertexfilename,std::string fragmentfilename);
-		void    changeShader();
 	};
 };
