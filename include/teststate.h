@@ -16,7 +16,7 @@
 class TestState : public EngineState
 {
 private:
-	ShaderProgram regularshader;
+	ShaderProgram *regularshader;
 	double rot;
 	double xscale;
 	double yscale;

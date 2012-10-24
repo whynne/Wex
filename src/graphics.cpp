@@ -489,9 +489,9 @@ Shader definitions
 	const int   graphics::COLOR_ATTRIBUTE_ID   = 2;
 	const char* graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
 
-	Shader::Shader(string filename) 
+	Shader::Shader(string filename,GLenum type) 
 	{
-		this->loadFromFile(filename);
+		this->loadFromFile(filename,type);
 	}
 
 	Shader::Shader() 
@@ -499,10 +499,9 @@ Shader definitions
 
 	}
 
-	void Shader::loadFromFile(std::string filename)
+	void Shader::loadFromFile(std::string filename,GLenum type)
 	{
 		std::ifstream file;
-		GLchar* source;
 		unsigned int sourcelength;
 		
 		//Status variables
@@ -525,22 +524,21 @@ Shader definitions
 		
 		//Create a handle for our shader, then compile.
 	
-		handle = glCreateShader(GL_VERTEX_SHADER);
+		handle = glCreateShader(type);
 
 		glShaderSource(handle, 1, (const GLchar**)&source, NULL);
 		glCompileShader(handle);
 		
 		glGetObjectParameterivARB(handle, GL_COMPILE_STATUS, &compiled);
-		if(compiled)
+
+		if(compiled == GL_TRUE)
 			cout << "Shader " << filename << " compiled successfully!" << endl;
 		GLint blen = 0;	
 		GLsizei slen = 0;
-		
-		glGetShaderiv(handle, GL_INFO_LOG_LENGTH , &blen);       
+		glGetShaderiv(handle, GL_INFO_LOG_LENGTH , &blen);    
 		
 		//If any errors, display log
-	
-		if (blen > 1)
+		if(blen > 1)
 		{
 		    GLchar* compiler_log = new GLchar[blen];	
 		    glGetInfoLogARB(handle, blen, &slen, compiler_log);
@@ -552,6 +550,7 @@ Shader definitions
 
 	Shader::~Shader() 
 	{
+		cout << "Tell me this isn't happening" << endl;
 		if (handle) glDeleteShader(handle);
 	}
 	ShaderProgram::ShaderProgram()
@@ -560,8 +559,8 @@ Shader definitions
 
 	ShaderProgram::ShaderProgram(std::string vsfilename,std::string fsfilename) {
 		GLint linked = 100;
-		vs = new Shader(vsfilename);
-		fs = new Shader(fsfilename);
+		vs = new Shader(vsfilename,GL_VERTEX_SHADER);
+		fs = new Shader(fsfilename,GL_FRAGMENT_SHADER);
 		handle = glCreateProgram();
 		glAttachShader(handle, vs->GetHandle());
 		glAttachShader(handle, fs->GetHandle());
@@ -572,13 +571,12 @@ Shader definitions
 		glGetProgramiv(handle, GL_LINK_STATUS, &linked);
 		cout << "Program handle " << handle << endl;
         if (linked == GL_TRUE)
-            cout << "Shader program successfully linked! " << linked << endl;
-		else
-			cout << "Failed to link program for some reason" << linked << endl;
+            cout << "Shader program successfully linked! " << endl;
 
 	}
 
 	ShaderProgram::~ShaderProgram() {
+		cout << "What the fuck" << endl;
 		if (vs) delete vs;
 		if (fs) delete fs;
 		if (handle) glDeleteProgram(handle);
@@ -815,17 +813,19 @@ void Renderer::drawBuffer()
 	if(spritebatch.getBufferLength() > 0)
 	{	
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(Point3d)*BUFFER_SIZE,spritebatch.getVertbuffer(),GL_STREAM_DRAW);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(Point3d)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
 
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(TexCoord)*BUFFER_SIZE,spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(TexCoord)*spritebatch.getBufferLength(),spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
 
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(ColorRGBA)*BUFFER_SIZE,spritebatch.getColorBuffer(),GL_STREAM_DRAW);
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(ColorRGBA)*spritebatch.getBufferLength(),spritebatch.getColorBuffer(),GL_STREAM_DRAW);
 
 		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
 		
 		glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
+
+		spritebatch.reset();
 	}
 }
 

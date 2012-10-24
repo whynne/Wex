@@ -184,11 +184,12 @@ namespace graphics
 	};
 
 	class Shader {
+		GLchar* source;
 		unsigned int handle;
 	public:
-		void loadFromFile(std::string filename);
+		void loadFromFile(std::string filename,GLenum type);
 		Shader();
-		Shader(string filename);
+		Shader(string filename,GLenum type);
 		~Shader();
 		inline unsigned int GetHandle() const;
 	};

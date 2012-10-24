@@ -4,8 +4,8 @@
 
 void TestState::init(Controller &maincontrol)
 {
-  square = Quad(1,1,ColorRGBA(1,.5,.1,1));
-
+  square = Quad(400,400,ColorRGBA(1,.5,.1,1));
+  rot = 0.0;
   /*
   // Initialize the OpenAL library
   alutInit(0,0);
@@ -70,9 +70,9 @@ void TestState::init(Controller &maincontrol)
   // Finally, play the sound!!!
   //alSourcePlay(sourceID);
   */
-  regularshader = ShaderProgram("regular.vert","regular.frag");
-  regularshader.setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
-  regularshader.enable(true);
+  regularshader = new ShaderProgram("regular.vert","regular.frag");
+  regularshader->setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
+  regularshader->enable(true);
 }
 
 void TestState::cleanup()
@@ -97,7 +97,6 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
-	glUseProgram(regularshader.getHandle());
 	glClearColor(1.0,0.0,1.0,1.0);
     //alSourcef(sourceID, AL_PITCH, sin(t)*.5 + 1.0);
 	rot += (sin(t)*.05 + .07)/6;
@@ -107,7 +106,7 @@ void TestState::update(double t,double dt)
 
 void TestState::draw()
 {
-	RENDERER->drawQuad(&square,Point3d(0,0,0),1,1,rot);
+	RENDERER->drawQuad(&square,Point3d(300,300,0),1,1,rot);
 	RENDERER->drawBuffer();
 }
 
