@@ -18,8 +18,7 @@ class TestState : public EngineState
 private:
 	ShaderProgram *regularshader;
 	double rot;
-	double xscale;
-	double yscale;
+	double scale;
 	Quad  square;
 	ALint state;                // The state of the sound source
     ALuint bufferID;            // The OpenAL sound buffer ID

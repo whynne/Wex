@@ -4,7 +4,7 @@
 
 void TestState::init(Controller &maincontrol)
 {
-  square = Quad(400,400,ColorRGBA(1,.5,.1,1));
+  square = Quad(100,100,ColorRGBA(1,.5,.1,1));
   rot = 0.0;
   /*
   // Initialize the OpenAL library
@@ -70,8 +70,11 @@ void TestState::init(Controller &maincontrol)
   // Finally, play the sound!!!
   //alSourcePlay(sourceID);
   */
+  cout << "Loading shaders" << endl;
   regularshader = new ShaderProgram("regular.vert","regular.frag");
+  cout << "Setting shader output" << endl;
   regularshader->setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
+  cout << "Enabling shader" << endl;
   regularshader->enable(true);
 }
 
@@ -97,17 +100,24 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
-	glClearColor(1.0,0.0,1.0,1.0);
+	cout << "Setting clear color" << endl;
+	glClearColor(0.0,0.0,0.0,0.0);
     //alSourcef(sourceID, AL_PITCH, sin(t)*.5 + 1.0);
-	rot += (sin(t)*.05 + .07)/6;
-	square.setColor(ColorRGBA(abs(cos(t)),.5,abs(sin(t)),1));
-	xscale = sin(t)+1;
+	cout << "Rotating" << endl;
+	rot += (sin(t*5)*.05 + .07);
+	cout << "Changing color" << endl;
+	square.setColor(ColorRGBA(abs((sin(t*5)+2)/3),.5,abs(-(sin(t*5)+2)/3),1));
+	cout << "Scaling" << endl;
+	scale = ((sin(t*5)+2)/2);
 }
 
 void TestState::draw()
 {
-	RENDERER->drawQuad(&square,Point3d(300,300,0),1,1,rot);
+	cout << "Trying to draw Quad" << endl;
+	RENDERER->drawQuad(&square,Point3d(250,250,0),scale,scale,rot);
+	cout << "Trying to draw buffer" << endl;
 	RENDERER->drawBuffer();
+	cout << "Success!" << endl;
 }
 
 TestState::TestState()

@@ -584,12 +584,12 @@ Shader definitions
 
 	void ShaderProgram::enable(bool state) {
 
-			glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
-		    glVertexAttribPointer(VERTEX_ATTRIBUTE_ID, 3, GL_DOUBLE,0,sizeof(Point3d),0);
-			glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
-			glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID, 2, GL_DOUBLE, 0,sizeof(TexCoord),0);
-			glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
-			glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_DOUBLE,0,sizeof(ColorRGBA),0);
+			//glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
+		    //glVertexAttribPointer(VERTEX_ATTRIBUTE_ID, 3, GL_DOUBLE,0,sizeof(Point3d),0);
+			//glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
+			//glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID, 2, GL_DOUBLE, 0,sizeof(TexCoord),0);
+			//glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
+			//glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_DOUBLE,0,sizeof(ColorRGBA),0);
 		
 		if (state) {
 			glActiveTexture(GL_TEXTURE0);
@@ -810,21 +810,22 @@ void Renderer::drawQuad(Quad* quad,Point3d position,double xscale,double yscale,
 void Renderer::drawBuffer()
 {
 
+	cout << "Size of vertices " << sizeof(Point3d)*spritebatch.getBufferLength() << endl;
+	cout << "Size of texcoords " << sizeof(TexCoord)*spritebatch.getBufferLength() << endl;
+	cout << "Size of colors " << sizeof(ColorRGBA)*spritebatch.getBufferLength() << endl;
+
+	cout << "Size of buffer " << spritebatch.getBufferLength() << endl;
+
 	if(spritebatch.getBufferLength() > 0)
 	{	
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
 		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(Point3d)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
-
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
 		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(TexCoord)*spritebatch.getBufferLength(),spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
-
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
 		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(ColorRGBA)*spritebatch.getBufferLength(),spritebatch.getColorBuffer(),GL_STREAM_DRAW);
-
 		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
-		
 		glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
-
 		spritebatch.reset();
 	}
 }
