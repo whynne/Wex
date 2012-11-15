@@ -6,6 +6,7 @@ void TestState::init(Controller &maincontrol)
 {
   square = Quad(100,100,ColorRGBA(1,.5,.1,1));
   rot = 0.0;
+  scale = 0.0;
   /*
   // Initialize the OpenAL library
   alutInit(0,0);
@@ -100,24 +101,18 @@ void TestState::handleEvents()
 
 void TestState::update(double t,double dt)
 {
-	cout << "Setting clear color" << endl;
 	glClearColor(0.0,0.0,0.0,0.0);
     //alSourcef(sourceID, AL_PITCH, sin(t)*.5 + 1.0);
-	cout << "Rotating" << endl;
-	rot += (sin(t*5)*.05 + .07);
-	cout << "Changing color" << endl;
-	square.setColor(ColorRGBA(abs((sin(t*5)+2)/3),.5,abs(-(sin(t*5)+2)/3),1));
-	cout << "Scaling" << endl;
-	scale = ((sin(t*5)+2)/2);
+	rot += (sin(t)*.05 + .07);
+	//square.setColor(ColorRGBA(abs((sin(t*5)+2)/3),.5,abs(-(sin(t*5)+2)/3),.0001));
+	scale = ((sin(t)+2)/2);
 }
 
 void TestState::draw()
 {
-	cout << "Trying to draw Quad" << endl;
 	RENDERER->drawQuad(&square,Point3d(250,250,0),scale,scale,rot);
-	cout << "Trying to draw buffer" << endl;
+    square.setColor(ColorRGBA(abs(cos(rot/4.663)),abs(sin(rot/3.545)),abs(sin(-rot/5.623)),1));
 	RENDERER->drawBuffer();
-	cout << "Success!" << endl;
 }
 
 TestState::TestState()

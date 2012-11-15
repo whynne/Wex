@@ -93,10 +93,10 @@ Sprite definitions
 
 ColorRGBA::ColorRGBA()
 {
-	_r = 1;
-	_g = 1;
-	_b = 1;
-	_a = 1;
+	_r = 0.0;
+	_g = 0.0;
+	_b = 0.0;
+	_a = 0.0;
 }
 
 ColorRGBA::ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
@@ -583,14 +583,6 @@ Shader definitions
 	}
 
 	void ShaderProgram::enable(bool state) {
-
-			//glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
-		    //glVertexAttribPointer(VERTEX_ATTRIBUTE_ID, 3, GL_DOUBLE,0,sizeof(Point3d),0);
-			//glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
-			//glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID, 2, GL_DOUBLE, 0,sizeof(TexCoord),0);
-			//glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
-			//glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_DOUBLE,0,sizeof(ColorRGBA),0);
-		
 		if (state) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex_handle);
@@ -699,6 +691,23 @@ bool graphics::Init()
         cout << "OpenGL 1.4 Supported!" << endl;
 	if (GLEW_VERSION_1_5)
         cout << "OpenGL 1.5 Supported!" << endl;
+	if (GLEW_VERSION_2_0)
+        cout << "OpenGL 2.0 Supported!" << endl;
+    if (GLEW_VERSION_2_1)
+        cout << "OpenGL 2.1 Supported!" << endl;
+	if (GLEW_VERSION_3_0)
+        cout << "OpenGL 3.0 Supported!" << endl;
+	if (GLEW_VERSION_3_1)
+        cout << "OpenGL 3.1 Supported!" << endl;
+    if (GLEW_VERSION_3_2)
+        cout << "OpenGL 3.2 Supported!" << endl;
+	if (GLEW_VERSION_3_3)
+        cout << "OpenGL 3.3 Supported!" << endl;
+    if (GLEW_VERSION_4_0)
+        cout << "OpenGL 4.0 Supported!" << endl;
+    if (GLEW_VERSION_4_1)
+        cout << "OpenGL 4.1 Supported!" << endl;
+
     if (glewIsSupported("GL_ARB_fragment_program"))
         cout << "Fragment programs supported" << endl;
     if (glewIsSupported("GL_ARB_vertex_program"))
@@ -727,23 +736,18 @@ Renderer::Renderer()
 		glGenBuffers( 1, &vbovertex);
 		glGenBuffers( 1, &vbotexture);
 		glGenBuffers( 1, &vbocolor);
+		
+		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
+		glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
+		glVertexAttribPointer(VERTEX_ATTRIBUTE_ID,3, GL_DOUBLE,0,sizeof(Point3d),0);
 
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getVertbuffer(),GL_STREAM_DRAW_ARB);
-	    glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
-		glVertexAttribPointer(VERTEX_ATTRIBUTE_ID, 3, GL_DOUBLE, 0,0,0);
-
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW_ARB);
+		glBindBuffer(GL_ARRAY_BUFFER,vbotexture);
 		glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
-		glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID, 2, GL_FLOAT, 0,0,0);
+		glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID,2, GL_DOUBLE, 0,sizeof(TexCoord),0);
 
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB, BUFFER_SIZE,spritebatch.getColorBuffer(),GL_STREAM_DRAW_ARB);
+		glBindBuffer(GL_ARRAY_BUFFER,vbocolor);
 		glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
-		glVertexAttribPointer(COLOR_ATTRIBUTE_ID, 4,GL_FLOAT, 1,0,0);
-
-		cout << glewGetErrorString(glGetError()) << endl;
+		glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_FLOAT,0,sizeof(ColorRGBA),0);
 }
 
 void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
@@ -810,22 +814,20 @@ void Renderer::drawQuad(Quad* quad,Point3d position,double xscale,double yscale,
 void Renderer::drawBuffer()
 {
 
-	cout << "Size of vertices " << sizeof(Point3d)*spritebatch.getBufferLength() << endl;
-	cout << "Size of texcoords " << sizeof(TexCoord)*spritebatch.getBufferLength() << endl;
-	cout << "Size of colors " << sizeof(ColorRGBA)*spritebatch.getBufferLength() << endl;
-
-	cout << "Size of buffer " << spritebatch.getBufferLength() << endl;
-
 	if(spritebatch.getBufferLength() > 0)
 	{	
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbovertex);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(Point3d)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbotexture);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(TexCoord)*spritebatch.getBufferLength(),spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbocolor);
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB,sizeof(ColorRGBA)*spritebatch.getBufferLength(),spritebatch.getColorBuffer(),GL_STREAM_DRAW);
+		
+		glBindBuffer( GL_ARRAY_BUFFER, vbovertex);
+		glBufferData( GL_ARRAY_BUFFER,sizeof(Point3d)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
+		
+		glBindBuffer( GL_ARRAY_BUFFER, vbotexture);
+		glBufferData( GL_ARRAY_BUFFER,sizeof(TexCoord)*spritebatch.getBufferLength(),spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
+		
+		glBindBufferARB( GL_ARRAY_BUFFER, vbocolor);
+		glBufferData( GL_ARRAY_BUFFER,sizeof(ColorRGBA)*spritebatch.getBufferLength(),spritebatch.getColorBuffer(),GL_STREAM_DRAW);
+		
 		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
-		glBindBuffer(GL_ARRAY_BUFFER_ARB,0);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
 		spritebatch.reset();
 	}
 }
