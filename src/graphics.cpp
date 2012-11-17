@@ -480,13 +480,13 @@ Shader definitions
 	const char* graphics::TVS_PROJECTION_MAT = "vs_Projection";
 	const char* graphics::TVS_MODEL_VIEW_MAT = "vs_ModelView";
 
-	const int   graphics::VERTEX_ATTRIBUTE_ID = 0;
+	const int   graphics::VERTEX_ATTRIBUTE_ID = 2;
 	const char* graphics::VERTEX_ATTRIBUTE_NAME = "vs_Vertex";
 
 	const int   graphics::TEXCOORD_ATTRIBUTE_ID = 1;
 	const char* graphics::TEXCOORD_ATTRIBUTE_NAME = "vs_TexCoord";
 
-	const int   graphics::COLOR_ATTRIBUTE_ID   = 2;
+	const int   graphics::COLOR_ATTRIBUTE_ID   = 0;
 	const char* graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
 
 	Shader::Shader(string filename,GLenum type) 
@@ -607,17 +607,24 @@ Shader definitions
 		}
 	}
 
-	void ShaderProgram::getUniformHandles() {
+    void ShaderProgram::getUniformHandles() {
 		glUseProgram(handle);
 		shader_mat_proj_handle = glGetUniformLocation(handle, TVS_PROJECTION_MAT);
 		shader_tex_handle      = glGetUniformLocation(handle, SAMPLER_NAME);
 		shader_mat_mv_handle   = glGetUniformLocation(handle, TVS_MODEL_VIEW_MAT);
 	}
 
-	void ShaderProgram::bindAttributes() {
+    void ShaderProgram::bindAttributes() {
+
+		cout << "Location of vertex attribute: " << glGetAttribLocation(handle,VERTEX_ATTRIBUTE_NAME) << endl;
+		cout << "Location of texcoord attribute: " << glGetAttribLocation(handle,TEXCOORD_ATTRIBUTE_NAME) << endl;
+		cout << "Location of color attribute: " << glGetAttribLocation(handle,COLOR_ATTRIBUTE_NAME) << endl;
 		glBindAttribLocation(handle, VERTEX_ATTRIBUTE_ID, VERTEX_ATTRIBUTE_NAME);
 		glBindAttribLocation(handle, TEXCOORD_ATTRIBUTE_ID, TEXCOORD_ATTRIBUTE_NAME);
 		glBindAttribLocation(handle, COLOR_ATTRIBUTE_ID, COLOR_ATTRIBUTE_NAME);
+		cout << "Location of vertex attribute: " << glGetAttribLocation(handle,VERTEX_ATTRIBUTE_NAME) << endl;
+		cout << "Location of texcoord attribute: " << glGetAttribLocation(handle,TEXCOORD_ATTRIBUTE_NAME) << endl;
+		cout << "Location of color attribute: " << glGetAttribLocation(handle,COLOR_ATTRIBUTE_NAME) << endl;
 	}
 	/*
 	void VertexShader::Enable(bool state) 
@@ -658,7 +665,7 @@ bool graphics::Init()
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
     SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
 	
-	glClearColor( 0.0,0.0,0.0,1.0 ); 
+	glClearColor( 0.0,1.0,0.0,1.0 ); 
 
                                                      // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
@@ -736,18 +743,18 @@ Renderer::Renderer()
 		glGenBuffers( 1, &vbovertex);
 		glGenBuffers( 1, &vbotexture);
 		glGenBuffers( 1, &vbocolor);
-		
-		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
+
 		glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
-		glVertexAttribPointer(VERTEX_ATTRIBUTE_ID,3, GL_DOUBLE,0,sizeof(Point3d),0);
+		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
+		glVertexAttribPointer(VERTEX_ATTRIBUTE_ID,3, GL_DOUBLE,0,0,0);
 
-		glBindBuffer(GL_ARRAY_BUFFER,vbotexture);
 		glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
-		glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID,2, GL_DOUBLE, 0,sizeof(TexCoord),0);
+		glBindBuffer(GL_ARRAY_BUFFER,vbotexture);
+		glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID,2, GL_DOUBLE, 0,0,0);
 
-		glBindBuffer(GL_ARRAY_BUFFER,vbocolor);
 		glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
-		glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_FLOAT,0,sizeof(ColorRGBA),0);
+		glBindBuffer(GL_ARRAY_BUFFER,vbocolor);
+		glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_FLOAT,GL_TRUE,0,0);
 }
 
 void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
@@ -823,7 +830,7 @@ void Renderer::drawBuffer()
 		glBindBuffer( GL_ARRAY_BUFFER, vbotexture);
 		glBufferData( GL_ARRAY_BUFFER,sizeof(TexCoord)*spritebatch.getBufferLength(),spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
 		
-		glBindBufferARB( GL_ARRAY_BUFFER, vbocolor);
+		glBindBuffer( GL_ARRAY_BUFFER, vbocolor);
 		glBufferData( GL_ARRAY_BUFFER,sizeof(ColorRGBA)*spritebatch.getBufferLength(),spritebatch.getColorBuffer(),GL_STREAM_DRAW);
 		
 		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());

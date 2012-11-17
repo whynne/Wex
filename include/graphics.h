@@ -312,7 +312,7 @@ namespace graphics
         void    moveCameraRelative(Point3d movementvector);
         void    moveCameraTowards(Point3d position);
 
-          void    drawSprite(Sprite* sprite,Point3d position);
+        void    drawSprite(Sprite* sprite,Point3d position);
         void    drawSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
         void    drawFixedSprite(Sprite* sprite,Point3d position);
         void    drawFixedSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);

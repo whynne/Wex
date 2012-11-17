@@ -91,7 +91,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>alut.lib;OpenALSoft32.lib;libogg.lib;libvorbis.lib;libvorbisfile.lib;SDL.lib;SDLmain.lib;opengl32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>alut.lib;freetype2410MT.lib;OpenALSoft32.lib;libogg.lib;libvorbis.lib;libvorbisfile.lib;SDL.lib;SDLmain.lib;opengl32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
