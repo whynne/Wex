@@ -3,6 +3,7 @@
 #include "SDL\SDL.h"
 #include "enginestate.h"
 #include "graphics.h"
+#include "audio.h"
 #include "timer.h"
 #include "controller.h"
 #include <ctime>

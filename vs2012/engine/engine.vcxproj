@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\actor.cpp" />
+    <ClCompile Include="..\..\src\audio.cpp" />
     <ClCompile Include="..\..\src\collision.cpp" />
     <ClCompile Include="..\..\src\console.cpp" />
     <ClCompile Include="..\..\src\controller.cpp" />
@@ -165,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\actor.h" />
+    <ClInclude Include="..\..\include\audio.h" />
     <ClInclude Include="..\..\include\collision.h" />
     <ClInclude Include="..\..\include\console.h" />
     <ClInclude Include="..\..\include\controller.h" />

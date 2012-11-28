@@ -273,22 +273,9 @@ namespace graphics
         this->height = height;
     }
 
-    class Resources
-    {
-    private:
-        Resources();
-        Resources&   operator=(Resources const&){};
-        map<string,GLint>  _textures;
-        map<string,SpriteSheet> _sprites;
-        map<string,GLint>  _shaders;
-
-    public:
-        static Resources _resourcemanager;
-
-        void loadAsTexture(string filename);
-        void loadSpriteSheetDefinition(string filename);
-        void loadShader(string vertexfilename,string fragmentfilename);
-    };
+	extern map<string,graphics::Texture>        textures;
+    extern map<string,graphics::SpriteSheet>    spritesheets;
+    extern map<string,graphics::ShaderProgram>  shaders;
 
     class Renderer
     {
@@ -303,6 +290,7 @@ namespace graphics
         GLuint           vbovertex;
         GLuint           vbotexture;
         GLuint           vbocolor;
+		ShaderProgram    *defaultshader;
         
     
     public:
@@ -317,7 +305,9 @@ namespace graphics
         void    drawFixedSprite(Sprite* sprite,Point3d position);
         void    drawFixedSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
         void    drawQuad(Quad* quad,Point3d position,double xscale,double yscale,double rotate);
-
+		void    changeTexture(int texhandle);
+		void    changeTexture(std::string name);
+		void    changeShader(std::string name);
 
         void    drawText(std::string text, Point3d position, GLint space);                   //Draws white text.
         void    drawBuffer();

@@ -17,8 +17,12 @@ bool GameEngine::init()
     running = true;
 
     //SDL/OpenGL initializations
-	if(!graphics::Init())
+	if(!graphics::Init()){
 		return false;
+	}
+	//OpenAL init
+
+	audio::init();
    									    // Enable unicode for translating keypresses into printable characters
 
     return true;

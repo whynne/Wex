@@ -7,6 +7,10 @@ Renderer* Renderer::instance = NULL;
 GLubyte uncompressedtgaheader[12] = {0,0, 2,0,0,0,0,0,0,0,0,0};
 GLubyte compressedtgaheader[12]   = {0,0,10,0,0,0,0,0,0,0,0,0};
 
+ map<string,graphics::Texture>        textures;
+ map<string,graphics::SpriteSheet>    spritesheets;
+ map<string,graphics::ShaderProgram>  shaders;
+
 /*=====================
 SpriteSheet definitions
 =====================*/
@@ -282,6 +286,7 @@ void Texture::createEmptyTexture(int height,int width)
 {
 	GLubyte* imagedata;		        //Pointer for storing image data
 	imagedata = new GLubyte[height*width*4];
+	memset(imagedata,255,height*width*4);
 	glGenTextures(1, &this->texid);													// Generate OpenGL texture IDs
 	glBindTexture(GL_TEXTURE_2D, this->texid);										
 
@@ -311,6 +316,11 @@ GLuint Texture::getHeight()
 GLuint Texture::getWidth()
 {
 	return width;
+}
+
+GLuint Texture::getTexId()
+{
+	return texid;
 }
 
 Texture::Texture(){
@@ -584,6 +594,7 @@ Shader definitions
 
 	void ShaderProgram::enable(bool state) {
 		if (state) {
+			glEnable(GL_TEXTURE_2D);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex_handle);
 			glUseProgram(handle);
@@ -615,16 +626,10 @@ Shader definitions
 	}
 
     void ShaderProgram::bindAttributes() {
-
 		cout << "Location of vertex attribute: " << glGetAttribLocation(handle,VERTEX_ATTRIBUTE_NAME) << endl;
 		cout << "Location of texcoord attribute: " << glGetAttribLocation(handle,TEXCOORD_ATTRIBUTE_NAME) << endl;
 		cout << "Location of color attribute: " << glGetAttribLocation(handle,COLOR_ATTRIBUTE_NAME) << endl;
-		glBindAttribLocation(handle, VERTEX_ATTRIBUTE_ID, VERTEX_ATTRIBUTE_NAME);
-		glBindAttribLocation(handle, TEXCOORD_ATTRIBUTE_ID, TEXCOORD_ATTRIBUTE_NAME);
-		glBindAttribLocation(handle, COLOR_ATTRIBUTE_ID, COLOR_ATTRIBUTE_NAME);
-		cout << "Location of vertex attribute: " << glGetAttribLocation(handle,VERTEX_ATTRIBUTE_NAME) << endl;
-		cout << "Location of texcoord attribute: " << glGetAttribLocation(handle,TEXCOORD_ATTRIBUTE_NAME) << endl;
-		cout << "Location of color attribute: " << glGetAttribLocation(handle,COLOR_ATTRIBUTE_NAME) << endl;
+		
 	}
 	/*
 	void VertexShader::Enable(bool state) 
@@ -744,17 +749,26 @@ Renderer::Renderer()
 		glGenBuffers( 1, &vbotexture);
 		glGenBuffers( 1, &vbocolor);
 
-		glEnableVertexAttribArray(VERTEX_ATTRIBUTE_ID);
+		defaultshader = new ShaderProgram("regular.vert","regular.frag");
+		defaultshader->setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
+		defaultshader->enable(true);
+	    int vertexattriboffset = glGetAttribLocation(defaultshader->getHandle(),VERTEX_ATTRIBUTE_NAME);
+		int texcoordattriboffset = glGetAttribLocation(defaultshader->getHandle(),TEXCOORD_ATTRIBUTE_NAME);;
+		int colorattriboffset = glGetAttribLocation(defaultshader->getHandle(),COLOR_ATTRIBUTE_NAME);;
+
+
+
+		glEnableVertexAttribArray(vertexattriboffset);
 		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
-		glVertexAttribPointer(VERTEX_ATTRIBUTE_ID,3, GL_DOUBLE,0,0,0);
+		glVertexAttribPointer(vertexattriboffset,3, GL_DOUBLE,0,0,0);
 
-		glEnableVertexAttribArray(TEXCOORD_ATTRIBUTE_ID);
+		glEnableVertexAttribArray(texcoordattriboffset);
 		glBindBuffer(GL_ARRAY_BUFFER,vbotexture);
-		glVertexAttribPointer(TEXCOORD_ATTRIBUTE_ID,2, GL_DOUBLE, 0,0,0);
+		glVertexAttribPointer(texcoordattriboffset,2, GL_DOUBLE, 0,0,0);
 
-		glEnableVertexAttribArray(COLOR_ATTRIBUTE_ID);
+		glEnableVertexAttribArray(colorattriboffset);
 		glBindBuffer(GL_ARRAY_BUFFER,vbocolor);
-		glVertexAttribPointer(COLOR_ATTRIBUTE_ID,4,GL_FLOAT,GL_TRUE,0,0);
+		glVertexAttribPointer(colorattriboffset,4,GL_FLOAT,GL_TRUE,0,0);
 }
 
 void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
@@ -864,9 +878,15 @@ void Renderer::moveCameraTowards(Point3d position)
 		view.y -= (view.y-position.y)/32;
 }
 
+void Renderer::changeTexture(int texhandle)
+{
+	glBindTexture(GL_TEXTURE_2D,texhandle);
+}
+
 Renderer* Renderer::Instance()
 {
 	if(!instance)
 		instance = new Renderer();
 	return instance;
 }
+
