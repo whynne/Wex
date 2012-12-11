@@ -7,9 +7,11 @@ Renderer* Renderer::instance = NULL;
 GLubyte uncompressedtgaheader[12] = {0,0, 2,0,0,0,0,0,0,0,0,0};
 GLubyte compressedtgaheader[12]   = {0,0,10,0,0,0,0,0,0,0,0,0};
 
- map<string,graphics::Texture>        textures;
- map<string,graphics::SpriteSheet>    spritesheets;
- map<string,graphics::ShaderProgram>  shaders;
+ map<string,graphics::Texture*>       graphics::textures;
+ map<string,graphics::ShaderProgram>  graphics::shaders;
+
+
+
 
 /*=====================
 SpriteSheet definitions
@@ -27,13 +29,52 @@ SpriteFrame SpriteSheet::getFrame(string sequence,unsigned int framenum)
 
 unsigned int SpriteSheet::getSequenceLength(string name)
 {
-	return sequences.at(name).size();
+	return sequences[name].size();
 }
 
-void SpriteSheet::setFrame(string sequence,unsigned int framenum,SpriteFrame frame)
+void SpriteSheet::addFrame(string sequence,SpriteFrame frame)
 {
-
+	sequences[sequence].push_back(frame);
 }
+
+
+/*=====================
+Font Definitions
+=====================*/
+
+TextureFont::TextureFont()
+{
+}
+
+SpriteFrame TextureFont::getFrame(int framenum)
+{
+	return glyphs[framenum];
+}
+
+TextureFont::TextureFont(char* filename)
+{
+	this->loadUncompressedTGA(filename);
+	int i = 0;
+	SpriteFrame characterframe;
+	characterframe.height = this->height/16;
+	characterframe.width = this->width/16;
+
+
+	for(float row = 0; row < 16; row+=1.0)
+	{
+		for(float column = 0; column < 16; column+=1.0)
+		{
+			characterframe.texcoords[0] = TexCoord(column/characterframe.width,row/characterframe.height);
+			characterframe.texcoords[1] = TexCoord((column+1.0)/characterframe.width,row/characterframe.height);
+			characterframe.texcoords[2] = TexCoord((column+1.0)/characterframe.width,(row+1.0)/characterframe.height);
+			characterframe.texcoords[3] = TexCoord(column/characterframe.width,(row+1.0)/characterframe.height);
+
+			glyphs[i]=characterframe;
+			i++;
+		}
+	}
+}
+
 
 /*=====================
 
@@ -42,16 +83,30 @@ Quad definitions
 =====================*/
 Quad::Quad()
 {
-	this->height = 10;
-	this->width = 10;
+	topleft.x = 0;
+	topleft.y = 0;
+	topright.x = 0;
+	topright.y = 0;
+	bottomright.x = 0;
+	bottomright.y = 0;
+	bottomleft.x = 0;
+	bottomleft.y = 0;
 	this->color = ColorRGBA(1,1,1,1);
 }
 
 Quad::Quad(double height,double width,ColorRGBA color)
 {
-	this->height = height;
-	this->width = width;
-	this->color = color;
+	topleft.x = 0;
+	topleft.y = 0;
+	topright.x = width;
+	topright.y = 0;
+	bottomright.x = width;
+	bottomright.y = height;
+	bottomleft.x = 0;
+	bottomleft.y = height;
+
+	midpoint.x = width/2;
+	midpoint.y = height/2;
 }
 
 ColorRGBA Quad::getColor()
@@ -64,6 +119,7 @@ void Quad::setColor(ColorRGBA color)
 	this->color = color;
 }
 
+/*
 double Quad::getHeight()
 {
 	return height;
@@ -84,10 +140,11 @@ void  Quad::setWidth(double width)
 	this->width = width;
 }
 
-Point3d Quad::getMidPoint()
+inline Point3f Quad::getMidPoint()
 {
-	return Point3d(width/2,height/2,0);
+	return Point3f(width/2,height/2,0);
 }
+*/
 
 /*=====================
 
@@ -113,13 +170,33 @@ ColorRGBA::ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 
 Sprite::Sprite()
 {
+	color = ColorRGBA(1,1,1,1);
 	//Default sprite is degenerate quad.
-	height = 0;
-	width = 0;
 	targetspritesheet = 0;
 	frame = 0;
 	accumulator = 0.0;
 	frametime = 0.0;
+}
+
+Sprite::Sprite(float height,float width)
+{
+	color = ColorRGBA(1,1,1,1);
+	targetspritesheet = 0;
+	frame = 0;
+	accumulator = 0.0;
+	frametime = 0.0;
+
+	topleft.x = 0;
+	topleft.y = 0;
+	topright.x = width;
+	topright.y = 0;
+	bottomright.x = width;
+	bottomright.y = height;
+	bottomleft.x = 0;
+	bottomleft.y = height;
+
+	midpoint.x = width/2;
+	midpoint.y = height/2;
 }
 
 void Sprite::changeSequence(string sequence)
@@ -128,15 +205,18 @@ void Sprite::changeSequence(string sequence)
 	this->sequencelength = targetspritesheet->getSequenceLength(sequence);
 }
 
-void Sprite::changeSpriteSheet(SpriteSheet *newsprite)
+void Sprite::changeSpriteSheet(SpriteSheet* newsprite)
 {
-	if (targetspritesheet != newsprite)
-	{
 		targetspritesheet = newsprite;
-		targetspritesheet = 0;
 		accumulator = 0;
-	}
 }
+
+void Sprite::changeSpriteSheet(std::string name)
+{
+	targetspritesheet = (SpriteSheet*)graphics::textures[name];
+	accumulator = 0;
+}
+
 
 void Sprite::changeSpriteSheetNoRewind(SpriteSheet *newsprite)
 {
@@ -164,7 +244,7 @@ void Sprite::rewind()
 	accumulator = 0;
 }
 
-Point3d Sprite::getOffset()
+Point3f Sprite::getOffset()
 {
 	return offset;
 }
@@ -174,43 +254,16 @@ SpriteFrame Sprite::getSpriteFrame()
 	return targetspritesheet->getFrame(sequence,frame);
 }
 
+
 void Sprite::setSpriteFrame(unsigned int frame)
 {
-	
+	this->frame = frame;
 }
 
 SpriteSheet* Sprite::getSpriteSheet()
 {
 	return targetspritesheet;
 }
-
-/*=====================
-Font Definitions
-=====================*/
-
-BitmapFont::BitmapFont()
-{
-}
-
-BitmapFont::BitmapFont(Texture& texture)
-{
-	buildFont(texture);
-}
-
-void BitmapFont::buildFont(Texture& texture)
-{
-	int currentchar = 0;
-	for(int row = 0; row < 16; row++)
-	{
-		for(int column = 0; column < 16; column++)
-		{
-			//_charactersprites[currentchar] = graphics::SpriteSheet(texture,1,texture.getHeight()/16,texture.getWidth()/16);
-			//_charactersprites[currentchar].setClip(0,column,row);
-			currentchar++;
-		}
-	}
-}
-
 
 /*=====================
 Texture Definitions
@@ -235,7 +288,7 @@ bool Texture::loadUncompressedTGA(char *filename)
 	ifstream texturestream;
 	texturestream.open(filename,ios::binary);
 	if(texturestream.good())
-		cout << "Successfully opened" << endl;
+		cout << "Successfully opened texture" << endl;
 	else
 		cout << "FAILED TO OPEN" << endl;
 	texturestream.read((char*)header,sizeof(header));
@@ -279,6 +332,8 @@ bool Texture::loadUncompressedTGA(char *filename)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, type, this->width, this->height, 0, type, GL_UNSIGNED_BYTE, imagedata);
     delete imagedata;
+
+	cout << "Loaded texture " << filename << " with id " << texid << endl;
 	return true;
 }
 
@@ -291,16 +346,17 @@ void Texture::createEmptyTexture(int height,int width)
 	glBindTexture(GL_TEXTURE_2D, this->texid);										
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	/*
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);				// Set texture parameters
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-
+	*/
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagedata);
 	delete imagedata;
 	this->height = height;
@@ -327,116 +383,278 @@ Texture::Texture(){
 
 }
 
+Glyph::Glyph(float height,float width)
+{
+	character = '0';
+
+	topleft.x = 0;
+	topleft.y = 0;
+	topright.x = width;
+	topright.y = 0;
+	bottomright.x = width;
+	bottomright.y = height;
+	bottomleft.x = 0;
+	bottomleft.y = height;
+
+	midpoint.x = width/2;
+	midpoint.y = height/2;
+}
+
+void Glyph::setFont(TextureFont* font)
+{
+	this->font = font;
+}
+
+void Glyph::setGlyph(char character)
+{
+	this->character = character;
+}
+
+SpriteFrame Glyph::getGlyph()
+{
+	return font->TextureFont::getFrame(character);
+}
 
 /*=====================
 SpriteSheet Batcher definitions
 =====================*/
+inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position)
+{
+	
+	//Get initial points
+	vertexbuffer[bufferpos+0].point.x = 0;
+	vertexbuffer[bufferpos+0].point.y = 0;
+	vertexbuffer[bufferpos+0].point.z = 0;
 
-void SpriteBatch::addToBuffer(Quad* quad,Point3d position,double xscale,double yscale,double rotate)
+	vertexbuffer[bufferpos+1].point.x = glyph.topright.x;
+	vertexbuffer[bufferpos+1].point.y = 0;
+	vertexbuffer[bufferpos+1].point.z = 0;
+
+	vertexbuffer[bufferpos+2].point.x = glyph.bottomright.x;
+	vertexbuffer[bufferpos+2].point.y = glyph.bottomright.y;
+	vertexbuffer[bufferpos+2].point.z = 0;
+
+	vertexbuffer[bufferpos+3].point.x = 0;
+	vertexbuffer[bufferpos+3].point.y = glyph.bottomleft.y;
+	vertexbuffer[bufferpos+3].point.z = 0;
+
+	
+	
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point - glyph.midpoint;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point - glyph.midpoint;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point - glyph.midpoint;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point - glyph.midpoint;
+	
+	//Translate
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point + position;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point + position;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point + position;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point + position;
+	
+	
+	//Texcoords
+	vertexbuffer[bufferpos+0].texcoord = glyph.getGlyph().texcoords[0];
+	vertexbuffer[bufferpos+1].texcoord = glyph.getGlyph().texcoords[1];
+	vertexbuffer[bufferpos+2].texcoord = glyph.getGlyph().texcoords[2];
+	vertexbuffer[bufferpos+3].texcoord = glyph.getGlyph().texcoords[3];
+
+	//Color
+	vertexbuffer[bufferpos+0].color = glyph.getColor();
+	vertexbuffer[bufferpos+1].color = glyph.getColor();
+	vertexbuffer[bufferpos+2].color = glyph.getColor();
+	vertexbuffer[bufferpos+3].color = glyph.getColor();
+	
+	
+	bufferpos += 4;
+}
+
+inline void SpriteBatch::addToBuffer(Sprite sprite,Point3f position)
+{
+	
+	//Get initial points
+	vertexbuffer[bufferpos+0].point.x = 0;
+	vertexbuffer[bufferpos+0].point.y = 0;
+	vertexbuffer[bufferpos+0].point.z = 0;
+
+	vertexbuffer[bufferpos+1].point.x = sprite.topright.x;
+	vertexbuffer[bufferpos+1].point.y = 0;
+	vertexbuffer[bufferpos+1].point.z = 0;
+
+	vertexbuffer[bufferpos+2].point.x = sprite.bottomright.x;
+	vertexbuffer[bufferpos+2].point.y = sprite.bottomright.y;
+	vertexbuffer[bufferpos+2].point.z = 0;
+
+	vertexbuffer[bufferpos+3].point.x = 0;
+	vertexbuffer[bufferpos+3].point.y = sprite.bottomleft.y;
+	vertexbuffer[bufferpos+3].point.z = 0;
+
+	
+	
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point - sprite.midpoint;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point - sprite.midpoint;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point - sprite.midpoint;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point - sprite.midpoint;
+	
+	//Translate
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point + position;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point + position;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point + position;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point + position;
+	
+	
+	//Texcoords
+	vertexbuffer[bufferpos+0].texcoord = sprite.getSpriteFrame().texcoords[0];
+	vertexbuffer[bufferpos+1].texcoord = sprite.getSpriteFrame().texcoords[1];
+	vertexbuffer[bufferpos+2].texcoord = sprite.getSpriteFrame().texcoords[2];
+	vertexbuffer[bufferpos+3].texcoord = sprite.getSpriteFrame().texcoords[3];
+
+	//Color
+	vertexbuffer[bufferpos+0].color = sprite.getColor();
+	vertexbuffer[bufferpos+1].color = sprite.getColor();
+	vertexbuffer[bufferpos+2].color = sprite.getColor();
+	vertexbuffer[bufferpos+3].color = sprite.getColor();
+	
+	
+	bufferpos += 4;
+}
+
+inline void SpriteBatch::addToBuffer(Quad quad,Point3f position,double xscale,double yscale,double rotate)
+{
+	
+	//Get initial points
+	vertexbuffer[bufferpos+0].point.x = 0;
+	vertexbuffer[bufferpos+0].point.y = 0;
+	vertexbuffer[bufferpos+0].point.z = 0;
+
+	vertexbuffer[bufferpos+1].point.x = quad.topright.x;
+	vertexbuffer[bufferpos+1].point.y = 0;
+	vertexbuffer[bufferpos+1].point.z = 0;
+
+	vertexbuffer[bufferpos+2].point.x = quad.bottomright.x;
+	vertexbuffer[bufferpos+2].point.y = quad.bottomright.y;
+	vertexbuffer[bufferpos+2].point.z = 0;
+
+	vertexbuffer[bufferpos+3].point.x = 0;
+	vertexbuffer[bufferpos+3].point.y = quad.bottomleft.y;
+	vertexbuffer[bufferpos+3].point.z = 0;
+
+	
+	
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point - quad.midpoint;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point - quad.midpoint;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point - quad.midpoint;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point - quad.midpoint;
+	
+	
+    //Scale
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point * Point3f(xscale,yscale,0);
+	
+	
+	//Rotate about center
+	vertexbuffer[bufferpos+0].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+1].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+2].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+3].point.rotate(Point3f(0,0,0),rotate);
+	
+	
+	
+	//Translate
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point + position;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point + position;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point + position;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point + position;
+	
+	
+	//Texcoords
+	vertexbuffer[bufferpos+0].texcoord.x = 0.0;
+	vertexbuffer[bufferpos+0].texcoord.y = 0.0;
+	vertexbuffer[bufferpos+1].texcoord.x = 1.0;
+	vertexbuffer[bufferpos+1].texcoord.y = 0.0;
+	vertexbuffer[bufferpos+2].texcoord.x = 1.0;
+	vertexbuffer[bufferpos+2].texcoord.y = 1.0;
+	vertexbuffer[bufferpos+3].texcoord.x = 0.0;
+	vertexbuffer[bufferpos+3].texcoord.y = 1.0;
+
+	//Color
+	vertexbuffer[bufferpos+0].color = quad.getColor();
+	vertexbuffer[bufferpos+1].color = quad.getColor();
+	vertexbuffer[bufferpos+2].color = quad.getColor();
+	vertexbuffer[bufferpos+3].color = quad.getColor();
+	
+	
+	bufferpos += 4;
+}
+
+inline void SpriteBatch::addToBuffer(Sprite sprite, Point3f position,double xscale,double yscale,double rotate)
 {
 	//Get initial points
-	vertexbuffer[bufferpos+0].x = 0;
-	vertexbuffer[bufferpos+0].y = 0;
-	vertexbuffer[bufferpos+0].z = 0;
+	vertexbuffer[bufferpos+0].point.x = 0;
+	vertexbuffer[bufferpos+0].point.y = 0;
+	vertexbuffer[bufferpos+0].point.z = 0;
 
-	vertexbuffer[bufferpos+1].x = quad->getWidth();
-	vertexbuffer[bufferpos+1].y = 0;
-	vertexbuffer[bufferpos+1].z = 0;
+	vertexbuffer[bufferpos+1].point.x = sprite.topright.x;
+	vertexbuffer[bufferpos+1].point.y = 0;
+	vertexbuffer[bufferpos+1].point.z = 0;
 
-	vertexbuffer[bufferpos+2].x = quad->getWidth();
-	vertexbuffer[bufferpos+2].y = quad->getHeight();
-	vertexbuffer[bufferpos+2].z = 0;
+	vertexbuffer[bufferpos+2].point.x = sprite.bottomright.x;
+	vertexbuffer[bufferpos+2].point.y = sprite.bottomright.y;
+	vertexbuffer[bufferpos+2].point.z = 0;
 
-	vertexbuffer[bufferpos+3].x = 0;
-	vertexbuffer[bufferpos+3].y = quad->getHeight();
-	vertexbuffer[bufferpos+3].z = 0;
+	vertexbuffer[bufferpos+3].point.x = 0;
+	vertexbuffer[bufferpos+3].point.y = sprite.bottomleft.y;
+	vertexbuffer[bufferpos+3].point.z = 0;
 
-	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] - quad->getMidPoint();
-	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] - quad->getMidPoint();
-	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] - quad->getMidPoint();
-	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] - quad->getMidPoint();
+	
+	
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point - sprite.midpoint;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point - sprite.midpoint;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point - sprite.midpoint;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point - sprite.midpoint;
+	
 	
     //Scale
-	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] * Point3d(xscale,yscale,0);
-	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] * Point3d(xscale,yscale,0);
-	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] * Point3d(xscale,yscale,0);
-	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] * Point3d(xscale,yscale,0);
-
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point * Point3f(xscale,yscale,0);
+	
+	
 	//Rotate about center
-	vertexbuffer[bufferpos+0].rotate(Point3d(0,0,0),rotate);
-	vertexbuffer[bufferpos+1].rotate(Point3d(0,0,0),rotate);
-	vertexbuffer[bufferpos+2].rotate(Point3d(0,0,0),rotate);
-	vertexbuffer[bufferpos+3].rotate(Point3d(0,0,0),rotate);
+	vertexbuffer[bufferpos+0].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+1].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+2].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+3].point.rotate(Point3f(0,0,0),rotate);
 	
 	
 	
 	//Translate
-	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] + position;
-	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] + position;
-	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] + position;
-	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] + position;
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point + position;
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point + position;
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point + position;
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point + position;
 	
 	
+	//Texcoords
+	vertexbuffer[bufferpos+0].texcoord = sprite.getSpriteFrame().texcoords[0];
+	vertexbuffer[bufferpos+1].texcoord = sprite.getSpriteFrame().texcoords[1];
+	vertexbuffer[bufferpos+2].texcoord = sprite.getSpriteFrame().texcoords[2];
+	vertexbuffer[bufferpos+3].texcoord = sprite.getSpriteFrame().texcoords[3];
 
 	//Color
-	colorbuffer[bufferpos+0] = quad->getColor();
-	colorbuffer[bufferpos+1] = quad->getColor();
-	colorbuffer[bufferpos+2] = quad->getColor();
-	colorbuffer[bufferpos+3] = quad->getColor();
-
+	vertexbuffer[bufferpos+0].color = sprite.getColor();
+	vertexbuffer[bufferpos+1].color = sprite.getColor();
+	vertexbuffer[bufferpos+2].color = sprite.getColor();
+	vertexbuffer[bufferpos+3].color = sprite.getColor();
+	
+	
 	bufferpos += 4;
+	
 }
 
-void SpriteBatch::addToBuffer(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate)
-{
-
-	if (sprite == 0 || sprite->getSpriteSheet() == 0)
-	{
-		cout << "Error: Attempting to draw sprite from a null pointer!" << endl;
-		return;
-	}
-
-	const TexCoord topleft     = sprite->getSpriteFrame().texcoords[0];
-	const TexCoord topright    = sprite->getSpriteFrame().texcoords[1];
-	const TexCoord bottomright = sprite->getSpriteFrame().texcoords[2];
-	const TexCoord bottomleft  = sprite->getSpriteFrame().texcoords[3];
-	const double   height = sprite->getSpriteSheet()->getHeight();
-	const double   width  = sprite->getSpriteSheet()->getWidth();
-
-		//Get initial points
-	vertexbuffer[bufferpos+0] = Point3d(0,0,0);
-	vertexbuffer[bufferpos+1] = Point3d(sprite->getWidth(),0,0);
-	vertexbuffer[bufferpos+2] = Point3d(sprite->getWidth(),sprite->getHeight(),0);
-	vertexbuffer[bufferpos+3] = Point3d(0,sprite->getHeight(),0);
-
-	//Rotate about center
-	vertexbuffer[bufferpos+0].rotate(sprite->getMidPoint(),rotate);
-	vertexbuffer[bufferpos+1].rotate(sprite->getMidPoint(),rotate);
-	vertexbuffer[bufferpos+2].rotate(sprite->getMidPoint(),rotate);
-	vertexbuffer[bufferpos+3].rotate(sprite->getMidPoint(),rotate);
-	
-    //Scale
-	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] * Point3d(xscale,yscale,0);
-	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] * Point3d(xscale,yscale,0);
-	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] * Point3d(xscale,yscale,0);
-	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] * Point3d(xscale,yscale,0);
-
-	//Translate
-	vertexbuffer[bufferpos+0] = vertexbuffer[bufferpos+0] + position;
-	vertexbuffer[bufferpos+1] = vertexbuffer[bufferpos+1] + position;
-	vertexbuffer[bufferpos+2] = vertexbuffer[bufferpos+2] + position;
-	vertexbuffer[bufferpos+3] = vertexbuffer[bufferpos+3] + position;
-	
-	//Color
-	colorbuffer[bufferpos+0] = sprite->getColor();
-	colorbuffer[bufferpos+1] = sprite->getColor();
-	colorbuffer[bufferpos+2] = sprite->getColor();
-	colorbuffer[bufferpos+3] = sprite->getColor();
-
-	bufferpos += 4;
-}
-
-Point3d* SpriteBatch::getVertbuffer()
+Vertex* SpriteBatch::getVertbuffer()
 {
 	return vertexbuffer;
 }
@@ -458,6 +676,7 @@ GLint SpriteBatch::getBufferLength()
 
 void SpriteBatch::reset()
 {
+	//memset(vertexbuffer,0.0,sizeof(Vertex)*BUFFER_SIZE);
 	bufferpos = 0;  
 }
 
@@ -518,8 +737,7 @@ Shader definitions
 		GLint compiled;
 	
 		//Open vertex file, read into a string
-	
-		file.open(filename,ios::binary|ios_base::ate);
+		file.open(filename.c_str(),ios::binary|ios_base::ate);
 		sourcelength = file.tellg();
 		source = new GLchar[sourcelength+1];
 		file.seekg(ios::beg);
@@ -595,7 +813,9 @@ Shader definitions
 	void ShaderProgram::enable(bool state) {
 		if (state) {
 			glEnable(GL_TEXTURE_2D);
-			glActiveTexture(GL_TEXTURE0);
+			//Sets the active texture unit, commented out since we don't need to mess with texture units
+			//glActiveTexture(GL_TEXTURE0);
+			//
 			glBindTexture(GL_TEXTURE_2D, tex_handle);
 			glUseProgram(handle);
 
@@ -607,9 +827,8 @@ Shader definitions
 
 			Mat4 proj_matrix;
 			identity.Multiply(proj_matrix, ortho);
-			
-			// The input texture should be on sampler 0.
-			glUniform1i(shader_tex_handle, GL_TEXTURE0);
+
+
 			glUniformMatrix4fv(shader_mat_proj_handle, 1, false, (float*)&proj_matrix);
 			glUniformMatrix4fv(shader_mat_mv_handle, 1, false, (float*)&identity);
 		} else {
@@ -618,11 +837,32 @@ Shader definitions
 		}
 	}
 
+
+
+	void ShaderProgram::zoom(float factor)
+	{
+		
+			
+		Mat4 identity;
+		Mat4::Identity(identity);
+		Mat4 ortho;
+		Mat4::Ortho(ortho, (-(float)SCREEN_WIDTH/2)/factor, (-(float)SCREEN_WIDTH/2)/factor,((float)SCREEN_WIDTH/2)/factor, ((float)SCREEN_HEIGHT/2)/factor, 0, 1);
+
+		Mat4 proj_matrix = ortho*identity;
+
+		glUniformMatrix4fv(shader_mat_proj_handle, 1, false, (float*)&proj_matrix);
+	}
+	
+
     void ShaderProgram::getUniformHandles() {
 		glUseProgram(handle);
 		shader_mat_proj_handle = glGetUniformLocation(handle, TVS_PROJECTION_MAT);
 		shader_tex_handle      = glGetUniformLocation(handle, SAMPLER_NAME);
 		shader_mat_mv_handle   = glGetUniformLocation(handle, TVS_MODEL_VIEW_MAT);
+
+		cout << "Projection matrix at: " << shader_mat_proj_handle << endl;
+		cout << "Sampler at:           " <<  shader_tex_handle << endl;
+		cout << "Modelview matrix at:  " <<  shader_mat_mv_handle << endl;
 	}
 
     void ShaderProgram::bindAttributes() {
@@ -657,9 +897,8 @@ bool graphics::Init()
           cout << "Still not initialized!" << endl;
     }
     SDL_WM_SetCaption( "Wex", NULL );
-    SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP,SDL_SWSURFACE);
 
-    if( SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_OPENGL ) == NULL )	// Set window properties, OpenGL is passed here
+    if( SDL_SetVideoMode( SCREEN_WIDTH*1, SCREEN_HEIGHT*1, SCREEN_BPP, SDL_OPENGL) == NULL )	// Set window properties, OpenGL is passed here
     {
         return false;
     }
@@ -670,7 +909,7 @@ bool graphics::Init()
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
     SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
 	
-	glClearColor( 0.0,1.0,0.0,1.0 ); 
+	glClearColor( 1.0,1.0,1.0,1.0 ); 
 
                                                      // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
@@ -679,7 +918,6 @@ bool graphics::Init()
     glDepthMask(true);
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.0f, 1.0f);
-    glViewport(0,0,SCREEN_HEIGHT,SCREEN_WIDTH);
     glEnable (GL_BLEND);										//Enable blending
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);         //Set blending for our alpha-enabled textures
                                                       
@@ -695,8 +933,9 @@ bool graphics::Init()
     GLenum err = glewInit();
 
     if(GLEW_OK != err)
-        std::cerr << "Error: " << glewGetErrorString(err) << endl;
-
+        std::cout << "OH SHIT Error: " << glewGetErrorString(err) << endl;
+	else
+		cout << "GLEW: NO ERRORS HERE" << endl;
     if (GLEW_VERSION_1_3)
         cout << "OpenGL 1.3 Supported!" << endl;
     if (GLEW_VERSION_1_4)
@@ -739,6 +978,18 @@ bool graphics::Init()
           cout << "Using shading language: " << sVersion << endl;
        }
     }
+
+	graphics::loadAssets();
+}
+
+void Renderer::setDefaultRendering(bool state)
+{
+	defaultshader->enable(state);
+}
+
+void Renderer::zoom(float factor)
+{
+	defaultshader->zoom(factor);
 }
 
 Renderer::Renderer()
@@ -750,28 +1001,34 @@ Renderer::Renderer()
 		glGenBuffers( 1, &vbocolor);
 
 		defaultshader = new ShaderProgram("regular.vert","regular.frag");
+		cout << "Setting output size" << endl;
 		defaultshader->setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
+		cout << "Enabling shader" << endl;
 		defaultshader->enable(true);
-	    int vertexattriboffset = glGetAttribLocation(defaultshader->getHandle(),VERTEX_ATTRIBUTE_NAME);
+	    cout << "Getting attribute locations" << endl;
+		int vertexattriboffset = glGetAttribLocation(defaultshader->getHandle(),VERTEX_ATTRIBUTE_NAME);
 		int texcoordattriboffset = glGetAttribLocation(defaultshader->getHandle(),TEXCOORD_ATTRIBUTE_NAME);;
 		int colorattriboffset = glGetAttribLocation(defaultshader->getHandle(),COLOR_ATTRIBUTE_NAME);;
 
-
+		cout << "Enabling attribute Arrays" << endl;
 
 		glEnableVertexAttribArray(vertexattriboffset);
 		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
-		glVertexAttribPointer(vertexattriboffset,3, GL_DOUBLE,0,0,0);
+		glVertexAttribPointer(vertexattriboffset,3, GL_FLOAT,0,sizeof(Vertex),(void*)0);
 
 		glEnableVertexAttribArray(texcoordattriboffset);
-		glBindBuffer(GL_ARRAY_BUFFER,vbotexture);
-		glVertexAttribPointer(texcoordattriboffset,2, GL_DOUBLE, 0,0,0);
+		glVertexAttribPointer(texcoordattriboffset,2, GL_FLOAT, 0,sizeof(Vertex),(void*)12);
 
 		glEnableVertexAttribArray(colorattriboffset);
-		glBindBuffer(GL_ARRAY_BUFFER,vbocolor);
-		glVertexAttribPointer(colorattriboffset,4,GL_FLOAT,GL_TRUE,0,0);
+		glVertexAttribPointer(colorattriboffset,4,GL_FLOAT,GL_TRUE,sizeof(Vertex),(void*)20);
+
+		cout << "Renderer construction complete" << endl;
+
+		//Request block of memory from the device
+
 }
 
-void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
+void Renderer::drawSprite(Sprite animation,Point3f position,double xscale,double yscale,double rotate)
 {
 	if(spritebatch.isFull())
 	{
@@ -783,7 +1040,7 @@ void Renderer::drawSprite(Sprite* animation,Point3d position,double xscale,doubl
 		spritebatch.addToBuffer(animation,position-view,xscale,yscale,rotate);
 }
 
-void Renderer::drawSprite(Sprite* animation,Point3d position)
+void Renderer::drawSprite(Sprite animation,Point3f position)
 {
 	if(spritebatch.isFull())
 	{
@@ -795,22 +1052,35 @@ void Renderer::drawSprite(Sprite* animation,Point3d position)
 		spritebatch.addToBuffer(animation,position-view,1.0,1.0,0);
 }
 
-void Renderer::drawFixedSprite(Sprite* animation,Point3d position)
+void Renderer::drawFixedSprite(Sprite animation,Point3f position)
 {
 	if(spritebatch.isFull())
 	{
 			drawBuffer();
 			spritebatch.reset();
-			spritebatch.addToBuffer(animation,position,1.0,1.0,0);
+			spritebatch.addToBuffer(animation,position);
 	}
 	else
-		spritebatch.addToBuffer(animation,position,1.0,1.0,0);
+		spritebatch.addToBuffer(animation,position);
 }
 
-void Renderer::drawFixedSprite(Sprite* animation,Point3d position,double xscale,double yscale,double rotate)
+void Renderer::drawFixedGlyph(Glyph glyph,Point3f position)
 {
 	if(spritebatch.isFull())
 	{
+			drawBuffer();
+			spritebatch.reset();
+			spritebatch.addToBuffer(glyph,position);
+	}
+	else
+		spritebatch.addToBuffer(glyph,position);
+}
+
+void Renderer::drawFixedSprite(Sprite animation,Point3f position,double xscale,double yscale,double rotate)
+{
+	if(spritebatch.isFull())
+	{
+
 			drawBuffer();
 			spritebatch.reset();
 			spritebatch.addToBuffer(animation,position,xscale,yscale,rotate);
@@ -819,7 +1089,7 @@ void Renderer::drawFixedSprite(Sprite* animation,Point3d position,double xscale,
 		spritebatch.addToBuffer(animation,position,xscale,yscale,rotate);
 }
 
-void Renderer::drawQuad(Quad* quad,Point3d position,double xscale,double yscale,double rotate)
+void Renderer::drawQuad(Quad quad,Point3f position,double xscale,double yscale,double rotate)
 {
 	if(spritebatch.isFull())
 	{
@@ -834,38 +1104,33 @@ void Renderer::drawQuad(Quad* quad,Point3d position,double xscale,double yscale,
 
 void Renderer::drawBuffer()
 {
-
+	
 	if(spritebatch.getBufferLength() > 0)
 	{	
 		
 		glBindBuffer( GL_ARRAY_BUFFER, vbovertex);
-		glBufferData( GL_ARRAY_BUFFER,sizeof(Point3d)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
-		
-		glBindBuffer( GL_ARRAY_BUFFER, vbotexture);
-		glBufferData( GL_ARRAY_BUFFER,sizeof(TexCoord)*spritebatch.getBufferLength(),spritebatch.getTexCoordBuffer(),GL_STREAM_DRAW);
-		
-		glBindBuffer( GL_ARRAY_BUFFER, vbocolor);
-		glBufferData( GL_ARRAY_BUFFER,sizeof(ColorRGBA)*spritebatch.getBufferLength(),spritebatch.getColorBuffer(),GL_STREAM_DRAW);
-		
+		glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
 		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
-		glBindBuffer(GL_ARRAY_BUFFER,0);
-		spritebatch.reset();
+        spritebatch.reset();
 	}
+	
 }
 
-void Renderer::drawText(std::string text,Point3d position, GLint space)
+void Renderer::drawText(TextureFont* font,std::string text,Point3f position,ColorRGBA color, GLfloat space)
 {
-	/*
-	Sprite character(16,16);
-	for(int i = 0; i < text.size(); i++)
+	
+	Glyph character(16.0,16.0);
+	character.setColor(color);
+	character.setFont(font);
+	
+	for(float i = 0; i < text.size(); i+=1.0)
 	{
-		character.changeSpriteSheet(&fonts[0]._charactersprites[(int)text[i]]);
-
-		drawFixed(&character,Point3d(position.x+(i*space),position.y,0));
+		character.setGlyph(text[i]);
+        drawFixedGlyph(character,Point3f(position.x+((float)i*space),position.y,0));
 	}
-	*/
+	
 }
-void Renderer::moveCameraTowards(Point3d position)
+void Renderer::moveCameraTowards(Point3f position)
 {
 	if (view.x < position.x) // camera is deeper than current position
 		view.x += (position.x-view.x)/8;
@@ -883,6 +1148,13 @@ void Renderer::changeTexture(int texhandle)
 	glBindTexture(GL_TEXTURE_2D,texhandle);
 }
 
+
+void Renderer::changeTexture(std::string name)
+{
+	glBindTexture(GL_TEXTURE_2D,textures[name]->getTexId());
+}
+
+
 Renderer* Renderer::Instance()
 {
 	if(!instance)
@@ -890,3 +1162,45 @@ Renderer* Renderer::Instance()
 	return instance;
 }
 
+SpriteFrame::SpriteFrame(float height,float width,Texture* texture,Point2f topleft)
+{
+	texcoords[0] = TexCoord(topleft.x/texture->getWidth(),topleft.y/texture->getHeight());
+	texcoords[1] = TexCoord((topleft.x+width)/texture->getWidth(),topleft.y/texture->getHeight());
+	texcoords[2] = TexCoord((topleft.x+width)/texture->getWidth(),(topleft.y+height)/texture->getHeight());
+	texcoords[3] = TexCoord(topleft.x/texture->getWidth(),(topleft.y+height)/texture->getHeight());
+}
+
+SpriteFrame::SpriteFrame()
+{
+
+}
+
+void graphics::loadAssets()
+{
+
+  SpriteSheet uispritesheet;
+
+  SpriteFrame tempframe;
+  uispritesheet.loadUncompressedTGA("uisprites.tga");
+
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(16,0));
+  uispritesheet.addFrame("horizontal border",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(0,16));
+  uispritesheet.addFrame("vertical border",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,0));
+  uispritesheet.addFrame("constitution icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,0));
+  uispritesheet.addFrame("speed icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,16));
+  uispritesheet.addFrame("intelligence icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,16));
+  uispritesheet.addFrame("strength icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(0,0));
+  uispritesheet.addFrame("border corner",tempframe);
+
+  graphics::textures["ui"] = new SpriteSheet(uispritesheet);
+  graphics::textures["uifont"] = new TextureFont("uifont.tga");
+
+  cout << "HONK " << endl;
+
+}

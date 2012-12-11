@@ -9,6 +9,7 @@
 #include <ctime>
 #include <vector>
 #include "opengl.h"
+#include "triglookup.h"
 
 
 using namespace std;

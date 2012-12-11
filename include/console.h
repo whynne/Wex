@@ -2,7 +2,7 @@
 #pragma once
 
 #include <string>
-#include <list>
+#include <vector>
 #include "graphics.h"
 #include "vec.h"
 
@@ -11,23 +11,43 @@ using namespace graphics;
 
 class Console
 {
-private:
-	list<string> _linebuffer;
-	list<string>::iterator _topline;
+protected:
+	TextureFont* font;
 
-	Point3d _position;
-	ColorRGBA _color;
+	vector<string>           linebuffer;
+	int topline;
 
-	double yspacing;
-	double xspacing;
+	Point3f   position;
+	ColorRGBA color;
 
-	double _rows;
-	double _columns;
+	float yspacing;
+	float xspacing;
+	
+	float rows;
+	float columns;
 public:
-
+	void setRows(int lines);
+	void setColumns(int columns);
+	void setSpacing(float x);
+	void setLineHeight(float y);
+	void setFont(std::string name);
+	void setColor(ColorRGBA color);
 	void print(std::string text);
-	void setPosition(Point3d position);
+	void setPosition(Point3f position);
 	void draw();
 	void clear();
 	Console();
+};
+
+class LSConsole : public Console
+{
+private:
+	Sprite corner;
+	Sprite horizontalborder;
+	Sprite verticalborder;
+public:
+	static void init();
+	void draw();
+	LSConsole();
+
 };

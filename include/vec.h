@@ -1,6 +1,6 @@
-#pragma once
-
-
+#ifndef H_VEC
+#define H_VEC
+#include "triglookup.h"
 
 // Vector
 
@@ -20,7 +20,6 @@ public:
 		result.x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
 		result.y = pivot.y + (x - pivot.x) * sin(theta) - (y - pivot.y) * cos(theta);
 	}
-
 
 	friend Vec2<T> operator*(const Vec2<T> &op1,const Vec2<T> &op2)
     {	
@@ -87,17 +86,24 @@ public:
 	T normal();
 
 	Vec3<T> operator=(const Vec2<T> &op2)
-    {	
+    {	 
 		return Vec3<T>(op2.x,op2.y,this->z);
     };
 
+
 	void rotate(Vec3<T> pivot,float theta)
 	{
+		
 		Point3d result;
-		result.x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
-		result.y = pivot.y + (x - pivot.x) * sin(theta) + (y - pivot.y) * cos(theta);
+
+
+		result.x = pivot.x + (x - pivot.x) * lcos(theta) - (y - pivot.y) * lsin(theta);
+		result.y = pivot.y + (x - pivot.x) * lsin(theta) + (y - pivot.y) * lcos(theta);
+
+
 		x = result.x;
 		y = result.y;
+		
 	}
 
 	//OPERATOR OVERLOADS
@@ -173,8 +179,8 @@ Vec2<T>::Vec2()
 template <class T>
 Vec2<T>::Vec2(T x,T y)
 {
-	x = x;
-	y = y;
+	this->x = x;
+	this->y = y;
 }
 
 template <class T>
@@ -199,6 +205,7 @@ T Vec3<T>::normal()
 	return sqrt(x*x+y*y+z*z);
 }
 
+
 typedef Vec3<int>    Point3i;
 typedef Vec3<double> Point3d;
 typedef Vec3<float>  Point3f;
@@ -220,3 +227,4 @@ typedef Vec2<int>    Vertex2i;
 typedef Vec2<double> Vertex2d;
 typedef Vec2<float>  Vertex2f;
 
+#endif

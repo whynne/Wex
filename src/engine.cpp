@@ -9,12 +9,16 @@ GameEngine::GameEngine()
 
 bool GameEngine::init()
 {
-    AllocConsole();
-    freopen( "CON", "w", stdout ); 
+   // AllocConsole();
+   // freopen( "CON", "w", stdout ); 
+
+
 
     //Game initializations
     srand(time(NULL));
-    running = true;
+    running = true;	
+	TrigLookUp::calculateTrigValues();
+
 
     //SDL/OpenGL initializations
 	if(!graphics::Init()){
@@ -62,7 +66,7 @@ Controller& GameEngine::getUserController()
 
 void GameEngine::draw(GameEngine *engine)
 {
-  glClearDepth(1.0f);
+  //glClearDepth(1.0f);
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   if(!statestack.empty())

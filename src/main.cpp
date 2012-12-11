@@ -1,12 +1,16 @@
 #define DEVBUILD
 #define NO_SDL_GLEXT
 #include "enginestate.h"
-#include "teststate.h"
+#include "MainState.h"
 #include <time.h>
 #include "engine.h"
+#include "AL/al.h"
+#include "AL/alut.h"
+#include "graphics.h"
 
 int main( int argc, char* args[] )
 {
+
 	Timer frametimer;
 
 	double t = 0.0;
@@ -23,7 +27,7 @@ int main( int argc, char* args[] )
 	engine.init();           
 			 
 
-	EngineState* EngineState = new TestState;
+	EngineState* EngineState = new MainState;
 	EngineState->init(engine.getUserController());  
 	engine.pushState(EngineState);                                                    
 	frametimer.start();                           
@@ -55,6 +59,11 @@ int main( int argc, char* args[] )
 
 		engine.draw(&engine);
 	}
+
+	SDL_Quit();
+
+	cout << "GAME OVER" << endl;
+
 	return 0;
 }
 

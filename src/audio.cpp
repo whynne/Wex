@@ -5,7 +5,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-std::map<std::string,AudioBuffer> audiobuffers;
+//std::map<std::string,AudioBuffer> audiobuffers;
 
 void audio::init()
 {
@@ -93,8 +93,7 @@ void Source::play()
 }
 
 
-void Source::setPosition(Point3f position)
+void audio::Source::setPosition(Point3f position)
 {
 	alSource3f(id,AL_POSITION,position.x,position.y,position.z);
 }
-

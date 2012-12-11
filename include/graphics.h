@@ -32,8 +32,6 @@
 #include <assert.h>
 #include <fstream>
 #include "SDL/SDL.h"
-#include "ft2build.h"
-#include FT_FREETYPE_H
 #include "opengl.h"
 #include "timer.h" 
 #include "vec.h"
@@ -48,15 +46,32 @@ using std::ios;
 using std::ios_base;
 using std::ifstream;
 
-const unsigned int SCREEN_HEIGHT = 500;
-const unsigned int SCREEN_WIDTH = 500;
+
+#define renderer graphics::Renderer::Instance()
+
+const unsigned int SCREEN_HEIGHT = 480;
+const unsigned int SCREEN_WIDTH = 600;
 const unsigned int SCREEN_BPP = 32;
-const unsigned int BUFFER_SIZE = 4096;
+const unsigned int BUFFER_SIZE = 14400;
 
 namespace graphics
 {
+	class Renderer;
+	class Texture;
+	class Glyph;
+	class SpriteSheet;
+	class TextureFont;
+	class ShaderProgram;
+	class SpriteBatch;
+	class Sprite;
+	class Quad;
 
+	
     bool Init();
+
+	extern map<string,graphics::Texture*>       textures;
+    extern map<string,graphics::ShaderProgram>  shaders;
+
 
     enum imageformat
     {
@@ -64,13 +79,15 @@ namespace graphics
         TYPE_RAW
     };    
 
-    typedef Point2d TexCoord;
+    typedef Point2f TexCoord;
 
     struct SpriteFrame
     {
         TexCoord texcoords[4];
         float height;
         float width;
+		SpriteFrame(float height,float width,Texture* texture,Point2f topleft);
+		SpriteFrame();
     };
 
     struct ColorRGBA
@@ -85,7 +102,7 @@ namespace graphics
 
     class Texture
     {
-    private:
+	protected:
         GLuint texid;
         GLuint height;
         GLuint width;
@@ -105,25 +122,28 @@ namespace graphics
       map<string,vector<SpriteFrame>> sequences;
     public:
       unsigned int getSequenceLength(string sequence);
-      void setFrame(string sequence,unsigned int framenum,SpriteFrame frame);
+      void addFrame(string sequence,SpriteFrame frame);
       SpriteFrame getFrame(string sequence,unsigned int framenum);
       SpriteSheet();
     };
 
     class Quad
     {
-    protected:
-        double       height;
-        double       width;
+	public:
+        Point2f        topleft;
+		Point2f        topright;
+		Point2f        bottomright;
+		Point2f        bottomleft;
+		Point3f        midpoint;
         ColorRGBA    color;
     public:
         ColorRGBA     getColor();
         void          setColor(ColorRGBA color);
-        double        getHeight();
-        void          setHeight(double height);
-        double        getWidth();
-        void          setWidth(double width);
-        Point3d       getMidPoint();
+        //double        getHeight();
+        //void          setHeight(double height);
+        //double        getWidth();
+        //void          setWidth(double width);
+        inline Point3f getMidPoint();
 
         Quad();
         Quad(double height,double width,ColorRGBA color);
@@ -132,7 +152,7 @@ namespace graphics
     class Sprite : public Quad
     {
     private:
-      Point3d      offset;
+      Point3f      offset;
       string       sequence;
       unsigned int sequencelength;
       double       frametime;
@@ -143,40 +163,48 @@ namespace graphics
 
     public:
       Sprite();
+	  Sprite(float height,float width);
       SpriteSheet*  getSpriteSheet();
       void          setSpriteSheet(string name);
+	  void          setSpriteSheet(SpriteSheet* spritesheet);
       SpriteFrame   getSpriteFrame();
       void          setSpriteFrame(unsigned int frame);
-      Point3d       getOffset();
-      void          setOffset(Point3d offset);
+      Point3f       getOffset();
+      void          setOffset(Point3f offset);
 
       void play(double delta);
       void playOnce();
       void stop();
       void rewind();
       void changeSequence(string sequence);
-      void changeSpriteSheet(SpriteSheet *newsheet);
+      void changeSpriteSheet(SpriteSheet* newsheet);
+	  void changeSpriteSheet(std::string name);
       void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
     };
 
-    class Font : public SpriteSheet
+    class TextureFont : public SpriteSheet
     {
     private:
-    public:
 
-    };
-
-    class BitmapFont
-    {
-    private:       
-        GLint  _handle;                        // handle to the font texture in openGL
+        SpriteFrame glyphs[256];
     public:
-        SpriteSheet _fonttexture;
-        
+		SpriteFrame getFrame(int framenum);
         void buildFont(Texture& texture);      // generates font
-        BitmapFont();                          // default constructor
-        BitmapFont(Texture& texture);          // generates font on construction
+        TextureFont();                          // default constructor
+        TextureFont(char *filename);          // generates font on construction
     };
+
+	class Glyph : public Quad
+	{
+	private:
+		char character;
+		TextureFont* font;
+	public:
+		void setFont(TextureFont* font);
+		SpriteFrame getGlyph();
+		void setGlyph(char character);
+		Glyph(float height,float width);
+	};
 
     struct VertexData
     {
@@ -185,20 +213,30 @@ namespace graphics
         GLfloat r,g,b,a;
     };
 
+	struct Vertex{
+		Point3f  point;
+		TexCoord texcoord;
+		ColorRGBA color;
+	};
+
     class SpriteBatch
     {
     private:
-        Point3d    vertexbuffer[BUFFER_SIZE];
+		Vertex     vertexbuffer[BUFFER_SIZE];
+        
+		//Point3f    vertexbuffer[BUFFER_SIZE];
         TexCoord   texcoordbuffer[BUFFER_SIZE];
         ColorRGBA  colorbuffer[BUFFER_SIZE];
+		
         GLint      bufferpos;
     
     public:
     
-        void       addToBuffer(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
-        void       addToBuffer(Quad* quad,Point3d position,double xscale,double yscale,double rotate);
-
-        Point3d*   getVertbuffer();
+        inline void addToBuffer(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
+        inline void addToBuffer(Quad quad,Point3f position,double xscale,double yscale,double rotate);
+		inline void addToBuffer(Glyph glyph,Point3f position);
+		inline void addToBuffer(Sprite sprite,Point3f position);
+        Vertex*    getVertbuffer();
         TexCoord*  getTexCoordBuffer();
         ColorRGBA* getColorBuffer();
         GLint      getBufferLength();
@@ -236,6 +274,7 @@ namespace graphics
     extern const int   COLOR_ATTRIBUTE_ID;
     extern const char* COLOR_ATTRIBUTE_NAME;
 
+
     class ShaderProgram {
         unsigned int handle;
         Shader* vs;
@@ -253,6 +292,7 @@ namespace graphics
         inline unsigned int getHandle() const;
         inline void setTexture(unsigned int tx_handle);
         inline void setOutputSize(int width, int height);
+		void zoom(float factor);
     private:
         void getUniformHandles();
         void bindAttributes();
@@ -273,17 +313,13 @@ namespace graphics
         this->height = height;
     }
 
-	extern map<string,graphics::Texture>        textures;
-    extern map<string,graphics::SpriteSheet>    spritesheets;
-    extern map<string,graphics::ShaderProgram>  shaders;
-
     class Renderer
     {
     private:
         Renderer();
         Renderer&         operator=(Renderer const&){};
 
-        Point3d          view;
+        Point3f          view;
         SpriteBatch      spritebatch;
         static Renderer* instance;
 
@@ -296,20 +332,24 @@ namespace graphics
     public:
         static  Renderer* Instance();
 
-        void    setCamera(Point3d cameraposition);
-        void    moveCameraRelative(Point3d movementvector);
-        void    moveCameraTowards(Point3d position);
-
-        void    drawSprite(Sprite* sprite,Point3d position);
-        void    drawSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
-        void    drawFixedSprite(Sprite* sprite,Point3d position);
-        void    drawFixedSprite(Sprite* sprite,Point3d position,double xscale,double yscale,double rotate);
-        void    drawQuad(Quad* quad,Point3d position,double xscale,double yscale,double rotate);
+		void    zoom(float factor);
+        void    setCamera(Point3f cameraposition);
+        void    moveCameraRelative(Point3f movementvector);
+        void    moveCameraTowards(Point3f position);
+		void    setDefaultRendering(bool state);
+        void    drawSprite(Sprite sprite,Point3f position);
+        void    drawSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
+        void    drawFixedSprite(Sprite sprite,Point3f position);
+        void    drawFixedSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
+        void    drawFixedGlyph(Glyph glyph,Point3f position);
+		void    drawQuad(Quad quad,Point3f position,double xscale,double yscale,double rotate);
 		void    changeTexture(int texhandle);
 		void    changeTexture(std::string name);
 		void    changeShader(std::string name);
 
-        void    drawText(std::string text, Point3d position, GLint space);                   //Draws white text.
+        void    drawText(TextureFont* font,std::string text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
         void    drawBuffer();
     };
+
+	void loadAssets();
 };
