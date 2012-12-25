@@ -49,8 +49,8 @@ using std::ifstream;
 
 #define renderer graphics::Renderer::Instance()
 
-const unsigned int SCREEN_HEIGHT = 480;
-const unsigned int SCREEN_WIDTH = 600;
+const unsigned int SCREEN_HEIGHT = 720;
+const unsigned int SCREEN_WIDTH = 960;
 const unsigned int SCREEN_BPP = 32;
 const unsigned int BUFFER_SIZE = 14400;
 
@@ -104,8 +104,8 @@ namespace graphics
     {
 	protected:
         GLuint texid;
-        GLuint height;
-        GLuint width;
+        float height;
+        float width;
     public:
         GLuint getHeight();
         GLuint getWidth();
@@ -139,9 +139,9 @@ namespace graphics
     public:
         ColorRGBA     getColor();
         void          setColor(ColorRGBA color);
-        //double        getHeight();
+		float        getHeight(){return topright.x-topleft.x;};
         //void          setHeight(double height);
-        //double        getWidth();
+		float        getWidth(){return bottomleft.y-topleft.y;};;
         //void          setWidth(double width);
         inline Point3f getMidPoint();
 
@@ -185,13 +185,16 @@ namespace graphics
     class TextureFont : public SpriteSheet
     {
     private:
-
+		int charheight;
+		int charwidth;
         SpriteFrame glyphs[256];
     public:
 		SpriteFrame getFrame(int framenum);
         void buildFont(Texture& texture);      // generates font
         TextureFont();                          // default constructor
         TextureFont(char *filename);          // generates font on construction
+		int getCharHeight(){return charheight;};
+		int getCharWidth(){return charwidth;};
     };
 
 	class Glyph : public Quad
@@ -347,7 +350,7 @@ namespace graphics
 		void    changeTexture(std::string name);
 		void    changeShader(std::string name);
 
-        void    drawText(TextureFont* font,std::string text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
+        void    drawText(std::string fontname,std::string text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
         void    drawBuffer();
     };
 

@@ -83,28 +83,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\actor.cpp" />
+    <ClCompile Include="..\..\src\game.cpp" />
     <ClCompile Include="..\..\src\audio.cpp" />
     <ClCompile Include="..\..\src\collision.cpp" />
-    <ClCompile Include="..\..\src\console.cpp" />
     <ClCompile Include="..\..\src\controller.cpp" />
     <ClCompile Include="..\..\src\engine.cpp" />
     <ClCompile Include="..\..\src\enginestate.cpp" />
     <ClCompile Include="..\..\src\graphics.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\matrix.cpp" />
+    <ClCompile Include="..\..\src\message.cpp" />
     <ClCompile Include="..\..\src\net.cpp" />
     <ClCompile Include="..\..\src\physics.cpp" />
     <ClCompile Include="..\..\src\mainstate.cpp" />
     <ClCompile Include="..\..\src\timer.cpp" />
     <ClCompile Include="..\..\src\triglookup.cpp" />
     <ClCompile Include="..\..\src\ui.cpp" />
-    <ClCompile Include="..\..\src\world.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\game.h" />
     <ClInclude Include="..\..\include\audio.h" />
     <ClInclude Include="..\..\include\collision.h" />
-    <ClInclude Include="..\..\include\console.h" />
+    <ClInclude Include="..\..\include\message.h" />
+    <ClInclude Include="..\..\include\ui.h" />
     <ClInclude Include="..\..\include\controller.h" />
     <ClInclude Include="..\..\include\engine.h" />
     <ClInclude Include="..\..\include\enginestate.h" />

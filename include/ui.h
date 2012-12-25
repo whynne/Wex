@@ -9,6 +9,8 @@
 using namespace std;
 using namespace graphics;
 
+void drawWindow(Point3f pos,float height,float width);
+
 class Console
 {
 protected:

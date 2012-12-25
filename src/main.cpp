@@ -27,7 +27,7 @@ int main( int argc, char* args[] )
 	engine.init();           
 			 
 
-	EngineState* EngineState = new MainState;
+	EngineState* EngineState = new MainGameState;
 	EngineState->init(engine.getUserController());  
 	engine.pushState(EngineState);                                                    
 	frametimer.start();                           

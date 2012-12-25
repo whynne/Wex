@@ -56,18 +56,20 @@ TextureFont::TextureFont(char* filename)
 	this->loadUncompressedTGA(filename);
 	int i = 0;
 	SpriteFrame characterframe;
-	characterframe.height = this->height/16;
-	characterframe.width = this->width/16;
 
+	characterframe.height = (float)this->height/16.0;
+	characterframe.width = (float)this->width/16.0;
+	charheight = characterframe.height;
+	charwidth = characterframe.width;
 
 	for(float row = 0; row < 16; row+=1.0)
 	{
 		for(float column = 0; column < 16; column+=1.0)
 		{
-			characterframe.texcoords[0] = TexCoord(column/characterframe.width,row/characterframe.height);
-			characterframe.texcoords[1] = TexCoord((column+1.0)/characterframe.width,row/characterframe.height);
-			characterframe.texcoords[2] = TexCoord((column+1.0)/characterframe.width,(row+1.0)/characterframe.height);
-			characterframe.texcoords[3] = TexCoord(column/characterframe.width,(row+1.0)/characterframe.height);
+			characterframe.texcoords[0] = TexCoord((column*characterframe.width)/this->width,(row*characterframe.height)/this->height);
+			characterframe.texcoords[1] = TexCoord(((column+1)*characterframe.width)/this->width,(row*characterframe.height)/this->height);
+			characterframe.texcoords[2] = TexCoord(((column+1)*characterframe.width)/this->width,((row+1)*characterframe.height)/this->height);
+			characterframe.texcoords[3] = TexCoord((column*characterframe.width)/this->width,((row+1)*characterframe.height)/this->height);
 
 			glyphs[i]=characterframe;
 			i++;
@@ -896,7 +898,7 @@ bool graphics::Init()
         else
           cout << "Still not initialized!" << endl;
     }
-    SDL_WM_SetCaption( "Wex", NULL );
+    SDL_WM_SetCaption( "Dragon Dildos 2: The Dickening", NULL );
 
     if( SDL_SetVideoMode( SCREEN_WIDTH*1, SCREEN_HEIGHT*1, SCREEN_BPP, SDL_OPENGL) == NULL )	// Set window properties, OpenGL is passed here
     {
@@ -1116,10 +1118,11 @@ void Renderer::drawBuffer()
 	
 }
 
-void Renderer::drawText(TextureFont* font,std::string text,Point3f position,ColorRGBA color, GLfloat space)
+void Renderer::drawText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space)
 {
+	TextureFont* font = (TextureFont*)graphics::textures[fontname];
 	
-	Glyph character(16.0,16.0);
+	Glyph character(font->getCharHeight(),font->getCharWidth());
 	character.setColor(color);
 	character.setFont(font);
 	
@@ -1183,9 +1186,9 @@ void graphics::loadAssets()
   SpriteFrame tempframe;
   uispritesheet.loadUncompressedTGA("uisprites.tga");
 
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(16,0));
+  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,10));
   uispritesheet.addFrame("horizontal border",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(0,16));
+  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(5,10));
   uispritesheet.addFrame("vertical border",tempframe);
   tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,0));
   uispritesheet.addFrame("constitution icon",tempframe);
@@ -1195,8 +1198,14 @@ void graphics::loadAssets()
   uispritesheet.addFrame("intelligence icon",tempframe);
   tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,16));
   uispritesheet.addFrame("strength icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(0,0));
-  uispritesheet.addFrame("border corner",tempframe);
+  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,0));
+  uispritesheet.addFrame("top left corner",tempframe);
+  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,0));
+  uispritesheet.addFrame("top right corner",tempframe);
+  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,5));
+  uispritesheet.addFrame("bottom right corner",tempframe);
+  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(0,5));
+  uispritesheet.addFrame("bottom left corner",tempframe);
 
   graphics::textures["ui"] = new SpriteSheet(uispritesheet);
   graphics::textures["uifont"] = new TextureFont("uifont.tga");

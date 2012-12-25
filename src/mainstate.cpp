@@ -1,52 +1,164 @@
 #include "mainstate.h"
+#include "mainstate.h"
+#define vpos(h) h*SCREEN_HEIGHT
+#define hpos(v) v*SCREEN_WIDTH
 
-void MainState::init(Controller &maincontrol)
+///////////////////////////////////////////////
+//
+//  MAIN MENU STATE - Pushed onto stack when 
+//                    game first starts
+//
+///////////////////////////////////////////////
+
+void MainMenuState::init(Controller &maincontrol)
 {
-
-  glClearColor(1,1,1,1);
-  mainconsole.setPosition(Point3f(20,180,0));
-  mainconsole.setRows(15);
-  mainconsole.setColumns(58);
-  mainconsole.setFont("uifont");
-  mainconsole.setSpacing(9.0);
-
-  mainconsole.print("A container called a birds nest is here. On the branch is a small birds nest. A closed unopenable container called a jewel-encrusted egg is in the nest. The initial appearance of the jewel-encrusted egg is. In the bird's nest is a large egg encrusted with precious jewels, apparently scavenged somewhere by a childless songbird. The egg is covered with fine gold inlay and ornamented in lapis lazuli and mother-of-pearl. Unlike most eggs, this one is hinged and has a delicate looking clasp holding it closed. The egg appears extremely fragile. The description of the egg is. The egg is covered with fine gold inlay and ornamented in lapis lazuli and mother-of-pearl. Unlike most eggs, this one is hinged and has a delicate looking clasp holding it closed. The egg appears extremely fragile.");
-  
-  renderer->setDefaultRendering(true);
-  
+  glClearColor(0,0,0,1);
+  renderer->setDefaultRendering(true); 
 }
 
-void MainState::cleanup()
-{
-
-}
-
-void MainState::pause()
+void MainMenuState::cleanup()
 {
 
 }
 
-void MainState::resume()
+void MainMenuState::pause()
 {
 
 }
 
-void MainState::handleEvents()
+void MainMenuState::resume()
 {
 
 }
 
-void MainState::update(double t,double dt)
+void MainMenuState::handleEvents()
+{
+
+}
+
+void MainMenuState::update(double t,double dt)
 {
 	
 }
 
-void MainState::draw()
+void MainMenuState::draw()
 {
-	mainconsole.draw();
+	renderer->changeTexture("uifont");
+	renderer->drawText("uifont","Oh, yes, that's mature.  Blame me, why don't you.",Point3f(vpos(.5),hpos(.5),0),ColorRGBA(.9,.9,.9,1),8.0);
+	renderer->drawBuffer();
 }
 
-MainState::MainState()
+MainMenuState::MainMenuState()
+{
+
+}
+
+///////////////////////////////////////////////
+//
+//  MAIN GAME STATE - Pushed onto stack when 
+//                    game is started/loaded
+//
+///////////////////////////////////////////////
+
+
+void MainGameState::init(Controller &maincontrol)
+{
+  console.setColumns(95);
+  console.setRows(34);
+  console.print("Dragon dildos were first made available to the public on the adult sex toy website Bad-Dragon.[1] On December 7th, 2007, Bad-Dragon co-founder Varka announced plans to create a business involving the sale and manufacture of dragon-like sex toys on his website Herpy.net.[2] On June 26th, 2008, a sex shop based in Phoenix, Arizona launched the online shopping site Bad-Dragon.com, featuring a variety of sex toys including phalluses shaped to resemble the male genitals of dragons, horses, dolphins, orcas, canines wallabies and cephalopods.");
+  console.setPosition(Point3f(170,170,0));
+  glClearColor(0,0,0,1);
+  renderer->setDefaultRendering(true); 
+}
+
+void MainGameState::cleanup()
+{
+
+}
+
+void MainGameState::pause()
+{
+
+}
+
+void MainGameState::resume()
+{
+
+}
+
+void MainGameState::handleEvents()
+{
+
+}
+
+void MainGameState::update(double t,double dt)
+{
+	
+}
+
+void MainGameState::draw()
+{
+	drawWindow(Point3f(10,10,0),150,150);
+	drawWindow(Point3f(10,170,0),525,150);
+	renderer->changeTexture("uifont");
+	renderer->drawText("uifont","STAT: 120",Point3f(30,190,0),ColorRGBA(1,1,1,1),8.0);
+	renderer->drawText("uifont","STAT: 120",Point3f(30,210,0),ColorRGBA(1,1,1,1),8.0);
+	renderer->drawText("uifont","STAT: 120",Point3f(30,230,0),ColorRGBA(1,1,1,1),8.0);
+	renderer->drawText("uifont","STAT: 120",Point3f(30,250,0),ColorRGBA(1,1,1,1),8.0);
+
+	renderer->drawBuffer();
+	console.draw();
+}
+
+MainGameState::MainGameState()
+{
+
+}
+
+///////////////////////////////////////////////
+//
+//  BATTLE STATE - Pushed onto stack whenever a
+//                 battle begins
+//
+///////////////////////////////////////////////
+
+
+void BattleState::init(Controller &maincontrol)
+{
+  renderer->setDefaultRendering(true); 
+}
+
+void BattleState::cleanup()
+{
+
+}
+
+void BattleState::pause()
+{
+
+}
+
+void BattleState::resume()
+{
+
+}
+
+void BattleState::handleEvents()
+{
+
+}
+
+void BattleState::update(double t,double dt)
+{
+	
+}
+
+void BattleState::draw()
+{
+
+}
+
+BattleState::BattleState()
 {
 
 }
