@@ -1,74 +1,150 @@
 #include "mainstate.h"
-#include "mainstate.h"
+
 #define vpos(h) h*SCREEN_HEIGHT
 #define hpos(v) v*SCREEN_WIDTH
 
-///////////////////////////////////////////////
-//
-//  MAIN MENU STATE - Pushed onto stack when 
-//                    game first starts
-//
-///////////////////////////////////////////////
+#define controller GameEngine::getController()
+#define blink(a,t) (sin(t*a) > 0 ? "_" : " ")
 
-void MainMenuState::init(Controller &maincontrol)
-{
-  glClearColor(0,0,0,1);
-  renderer->setDefaultRendering(true); 
-}
-
-void MainMenuState::cleanup()
-{
-
-}
-
-void MainMenuState::pause()
-{
-
-}
-
-void MainMenuState::resume()
-{
-
-}
-
-void MainMenuState::handleEvents()
-{
-
-}
-
-void MainMenuState::update(double t,double dt)
-{
-	
-}
-
-void MainMenuState::draw()
-{
-	renderer->changeTexture("uifont");
-	renderer->drawText("uifont","Oh, yes, that's mature.  Blame me, why don't you.",Point3f(vpos(.5),hpos(.5),0),ColorRGBA(.9,.9,.9,1),8.0);
-	renderer->drawBuffer();
-}
-
-MainMenuState::MainMenuState()
-{
-
-}
 
 ///////////////////////////////////////////////
-//
-//  MAIN GAME STATE - Pushed onto stack when 
+//  MAIN GAME STATE - Pushed onto stack when  
 //                    game is started/loaded
-//
 ///////////////////////////////////////////////
 
+LSConsole MainGameState::console;
+//audio::AudioBuffer MainGameState::buffer;
+//audio::Source MainGameState::source;
 
-void MainGameState::init(Controller &maincontrol)
+
+int MainGameState::print(lua_State* L)
 {
-  console.setColumns(95);
-  console.setRows(34);
-  console.print("Dragon dildos were first made available to the public on the adult sex toy website Bad-Dragon.[1] On December 7th, 2007, Bad-Dragon co-founder Varka announced plans to create a business involving the sale and manufacture of dragon-like sex toys on his website Herpy.net.[2] On June 26th, 2008, a sex shop based in Phoenix, Arizona launched the online shopping site Bad-Dragon.com, featuring a variety of sex toys including phalluses shaped to resemble the male genitals of dragons, horses, dolphins, orcas, canines wallabies and cephalopods.");
-  console.setPosition(Point3f(170,170,0));
-  glClearColor(0,0,0,1);
-  renderer->setDefaultRendering(true); 
+	int args = lua_gettop(L);
+	cout << "print called with " << args << " arguments" << endl; 
+	for(int i=1;i<=args;i++)
+	{
+		if(lua_isstring(L,(-lua_gettop(L))+(i-1)))
+			MainGameState::console.print(getArgString(i,L));
+		else
+			cout << "Warning: Arg " << i << " is not a string" << endl; 
+	}
+
+	return 0;
+}
+int MainGameState::setConsolePosition(lua_State* L)
+{
+	console.setPosition(Point3f(getArgNumber(1,L),getArgNumber(2,L),0));
+	return 0;
+}
+
+/*
+int MainGameState::loadOgg(lua_State* L)
+{
+	int args = lua_gettop(L);
+	cout << "loadOgg called with " << args << " arguments" << endl; 
+	for(int i=1;i<=args;i++)
+	{
+		if(lua_isstring(L,(-lua_gettop(L))+(i-1)))
+		{
+			audio::AudioBuffer buf;
+			buf.loadVorbisFile(getArgString(i,L));
+			if(!buf.getId() > 0)
+			{
+				cout << "Warning: Failed to load file " << getArgString(i,L) << "... Skipping." << endl;
+				continue;
+			}
+			audio::audiobuffers[getArgString(i,L)] = buf;
+			cout << "Successfully loaded file" << getArgString(i,L) << " with id " << buf.getId() << endl;
+		}
+		else
+			cout << "Warning: Arg " << i << " is not a string" << endl; 
+	}
+
+	return 0;
+}
+*/
+
+/*
+int MainGameState::playOgg(lua_State* L)
+{
+	int args = lua_gettop(L);
+	cout << "playOgg called with " << args << " arguments" << endl; 
+	if(args != 1)
+	{
+		cout << "Warning: Wrong number of args in function playOgg." << endl;
+		return 0;
+	}
+	if(lua_isstring(L,1) && audio::audiobuffers.find(getArgString(1,L)) != audio::audiobuffers.end())
+	{
+		cout << "playing..." << endl;
+		source.setPosition(Point3f(0,0,0));
+		source.attachBuffer(audio::audiobuffers[getArgString(1,L)]);
+		source.play();
+	}
+
+	return 0;
+}
+*/
+int MainGameState::showConsole(lua_State* L)
+{
+	console.setVisible(true);
+	return 0;
+}
+int MainGameState::hideConsole(lua_State* L)
+{
+	console.setVisible(false);
+	return 0;
+}
+int MainGameState::setConsoleRows(lua_State* L)
+{
+	console.setRows(getArgNumber(1,L));
+	return 0;
+}
+int MainGameState::setConsoleColumns(lua_State* L)
+{
+	console.setColumns(getArgNumber(1,L));
+	return 0;
+}
+
+int MainGameState::getCommand(lua_State* L)
+{
+	lua_pushstring(L,GameEngine::getController().getCapturedText().c_str());
+	return 1;
+}
+
+
+void MainGameState::initState()
+{
+  cout << "Setting color" << endl;
+  console.setColor(ColorRGBA(1,1,1,1));
+  cout << "Setting font" << endl;
+  console.setFont("uifont");
+  cout  << "Starting text capture" << endl;
+  GameEngine::getController().startTextCapture();
+  //Bind all our lua functions
+  //source.attachBuffer(buffer);
+  
+  cout  << "Binding lua functions" << endl;
+  
+  
+  lua["print"] = print;
+  lua["setConsolePosition"] = setConsolePosition;
+  lua["showConsole"] = showConsole;
+  lua["hideConsole"] = hideConsole;
+  lua["setConsoleRows"] = setConsoleRows; 
+  lua["setConsoleColumns"] = setConsoleColumns;
+  lua["getCommand"] = getCommand;
+  //lua["loadOgg"] = loadOgg;
+  //lua["playOgg"] = playOgg;
+  lua["trim"] = stringtrim;
+  cout << "Loading lua scripts" << endl;
+  lua.loadScript("init.lua");
+  lua.loadScript("command.lua");
+  lua.loadScript("step.lua");
+
+  //Run the init script
+  lua["init.lua"].call();
+  
 }
 
 void MainGameState::cleanup()
@@ -88,26 +164,38 @@ void MainGameState::resume()
 
 void MainGameState::handleEvents()
 {
-
+	if(controller.keyPressed(SDLK_RETURN))
+	{
+		if(controller.getCapturedText() == "")
+			return;
+		console.print(controller.getCapturedText() + "\n");
+		cout << "Command given is: " + controller.getCapturedText() << endl;
+		lua["command"] = controller.getCapturedText();
+		lua["command.lua"].call();
+		if(lua.hasError())
+			cout << lua.getError() << endl;
+		controller.flushText();
+	}
 }
 
-void MainGameState::update(double t,double dt)
+void MainGameState::updateState(double t,double dt)
 {
-	
 }
 
-void MainGameState::draw()
+void MainGameState::drawState(double t,double dt)
 {
-	drawWindow(Point3f(10,10,0),150,150);
-	drawWindow(Point3f(10,170,0),525,150);
+	drawWindow(console.getPosition()+Point3f(0,console.getWindowHeight()+8,0),20, controller.getCapturedText().length() < console.getColumns() ? console.getWindowWidth() : (8*(controller.getCapturedText().length()+2)));
 	renderer->changeTexture("uifont");
-	renderer->drawText("uifont","STAT: 120",Point3f(30,190,0),ColorRGBA(1,1,1,1),8.0);
-	renderer->drawText("uifont","STAT: 120",Point3f(30,210,0),ColorRGBA(1,1,1,1),8.0);
-	renderer->drawText("uifont","STAT: 120",Point3f(30,230,0),ColorRGBA(1,1,1,1),8.0);
-	renderer->drawText("uifont","STAT: 120",Point3f(30,250,0),ColorRGBA(1,1,1,1),8.0);
+	renderer->drawText("uifont",controller.getCapturedText() + blink(10,t),console.getPosition()+Point3f(16,console.getWindowHeight()+20,0),ColorRGBA(1,1,1,1),8.0);
+	renderer->drawText("uifont","wex v0.1a",Point3f(10,10,0),ColorRGBA(1,1,1,1),8.0);
 
 	renderer->drawBuffer();
-	console.draw();
+	MainGameState::console.draw();
+}
+
+MainGameState::MainGameState(GameEngine& engine)
+{
+	this->engine = &engine;
 }
 
 MainGameState::MainGameState()
@@ -115,50 +203,3 @@ MainGameState::MainGameState()
 
 }
 
-///////////////////////////////////////////////
-//
-//  BATTLE STATE - Pushed onto stack whenever a
-//                 battle begins
-//
-///////////////////////////////////////////////
-
-
-void BattleState::init(Controller &maincontrol)
-{
-  renderer->setDefaultRendering(true); 
-}
-
-void BattleState::cleanup()
-{
-
-}
-
-void BattleState::pause()
-{
-
-}
-
-void BattleState::resume()
-{
-
-}
-
-void BattleState::handleEvents()
-{
-
-}
-
-void BattleState::update(double t,double dt)
-{
-	
-}
-
-void BattleState::draw()
-{
-
-}
-
-BattleState::BattleState()
-{
-
-}

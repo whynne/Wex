@@ -1,7 +1,7 @@
 #include "engine.h"
 
-using namespace std;
 
+Controller GameEngine::controller;
     
 GameEngine::GameEngine()
 {
@@ -9,8 +9,8 @@ GameEngine::GameEngine()
 
 bool GameEngine::init()
 {
-   // AllocConsole();
-   // freopen( "CON", "w", stdout ); 
+   AllocConsole();
+   freopen( "CON", "w", stdout ); 
 
 
 
@@ -24,15 +24,16 @@ bool GameEngine::init()
 	if(!graphics::Init()){
 		return false;
 	}
+	cout << "Graphics successfully initialized!" << endl;
 	//OpenAL init
 
-	audio::init();
+	//audio::init();
    									    // Enable unicode for translating keypresses into printable characters
 
     return true;
 }
 
-void GameEngine::handleEvents(GameEngine *engine)
+void GameEngine::handleEvents()
 {
     while(SDL_PollEvent(&event))
     {
@@ -40,45 +41,46 @@ void GameEngine::handleEvents(GameEngine *engine)
             running = false;
         else if (event.type == SDL_KEYDOWN)
         {
-            _maincontrol.pressKey(event.key.keysym.sym);
+            controller.pressKey(event.key.keysym.sym);
 
-            if(_maincontrol.isTextCaptureMode())
+            if(controller.isTextCaptureMode())
             {
-                _maincontrol.insertCharacter(event.key.keysym);
+                controller.insertCharacter(event.key.keysym);
             }
         }
         else if (event.type == SDL_KEYUP)
-            _maincontrol.releaseKey(event.key.keysym.sym);	
+            controller.releaseKey(event.key.keysym.sym);	
         else if ( event.type == SDL_MOUSEMOTION ) 
         {
             
         }
     }
     statestack.back()->handleEvents();
-    _maincontrol.update();
-}
-
-Controller& GameEngine::getUserController()
-{
-    return _maincontrol;
+    controller.update();
 }
 
 
-void GameEngine::draw(GameEngine *engine)
+
+void GameEngine::initState()
 {
-  //glClearDepth(1.0f);
+	statestack.front()->initState();
+}
+
+void GameEngine::drawState(double t,double dt)
+{
+  glClearDepth(1.0f);
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   if(!statestack.empty())
-    statestack.front()->draw();
+    statestack.front()->drawState(t,dt);
   else
     return;
   SDL_GL_SwapBuffers();
 }
 
-void GameEngine::update(GameEngine *engine,double t,double dt)
+void GameEngine::updateState(double t,double dt)
 {
-    statestack.back()->update(t,dt);
+    statestack.back()->updateState(t,dt);
 }
 
 void GameEngine::changeState(EngineState *state)
@@ -102,4 +104,9 @@ void GameEngine::popState(EngineState *state)
 bool GameEngine::isRunning()
 {
     return running;
+}
+
+Controller& GameEngine::getController()
+{
+	return controller;
 }

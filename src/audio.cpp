@@ -1,11 +1,15 @@
+
+
 #include "audio.h"
 
+/*
 using namespace audio;
+
 using std::cout;
 using std::endl;
 using std::string;
 
-//std::map<std::string,AudioBuffer> audiobuffers;
+std::map<std::string,AudioBuffer> audio::audiobuffers;
 
 void audio::init()
 {
@@ -45,7 +49,7 @@ void AudioBuffer::loadVorbisFile(std::string name)
   pInfo = ov_info(&oggFile, -1);
   if(pInfo == 0)
   {
-	  cout << "You fucked up!" << endl;
+	  cout << "Warning: Could not retrieve information from file " << name << endl;
 	  return;
   }
 
@@ -97,3 +101,4 @@ void audio::Source::setPosition(Point3f position)
 {
 	alSource3f(id,AL_POSITION,position.x,position.y,position.z);
 }
+*/

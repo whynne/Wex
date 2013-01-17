@@ -1,4 +1,14 @@
+
+#pragma once
+
 #include "actor.h"
+
+enum MessageTypes
+{
+	LOOK,
+	EXAMINE,
+
+};
 
 class Message
 {

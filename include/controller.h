@@ -33,7 +33,7 @@ private:
 	bool _mousedown;  
 	bool _iscapturemode;
 	std::map<int,Keydata> _keyboard;
-	std::stringstream _capturedtext;
+	std::string _capturedtext;
 
 public:
 	//Set
@@ -48,6 +48,7 @@ public:
 
 	bool mouseMoved();
 
+	void flushText();
 	void setMousePos(Point2d newpos);
 	void update();
 	bool isTextCaptureMode();
@@ -55,6 +56,7 @@ public:
 	void insertCharacter(SDL_keysym keysym);
 	void stopTextCapture();
 	void startTextCapture();
+	void setKeyRepeat(bool v);
 	std::string getCapturedText();
 	Controller();
 };

@@ -7,15 +7,8 @@ Renderer* Renderer::instance = NULL;
 GLubyte uncompressedtgaheader[12] = {0,0, 2,0,0,0,0,0,0,0,0,0};
 GLubyte compressedtgaheader[12]   = {0,0,10,0,0,0,0,0,0,0,0,0};
 
- map<string,graphics::Texture*>       graphics::textures;
- map<string,graphics::ShaderProgram>  graphics::shaders;
-
-
-
-
-/*=====================
-SpriteSheet definitions
-=====================*/
+map<string,graphics::Texture*>       graphics::textures;
+map<string,graphics::ShaderProgram>  graphics::shaders;
 
 SpriteSheet::SpriteSheet()
 {
@@ -37,11 +30,6 @@ void SpriteSheet::addFrame(string sequence,SpriteFrame frame)
 	sequences[sequence].push_back(frame);
 }
 
-
-/*=====================
-Font Definitions
-=====================*/
-
 TextureFont::TextureFont()
 {
 }
@@ -51,14 +39,14 @@ SpriteFrame TextureFont::getFrame(int framenum)
 	return glyphs[framenum];
 }
 
-TextureFont::TextureFont(char* filename)
+TextureFont::TextureFont(char* filename,int height,int width)
 {
 	this->loadUncompressedTGA(filename);
 	int i = 0;
 	SpriteFrame characterframe;
 
-	characterframe.height = (float)this->height/16.0;
-	characterframe.width = (float)this->width/16.0;
+	characterframe.height = (float)height/16.0;
+	characterframe.width = (float)width/16.0;
 	charheight = characterframe.height;
 	charwidth = characterframe.width;
 
@@ -77,12 +65,6 @@ TextureFont::TextureFont(char* filename)
 	}
 }
 
-
-/*=====================
-
-Quad definitions
-
-=====================*/
 Quad::Quad()
 {
 	topleft.x = 0;
@@ -121,45 +103,12 @@ void Quad::setColor(ColorRGBA color)
 	this->color = color;
 }
 
-/*
-double Quad::getHeight()
-{
-	return height;
-}
-
-void  Quad::setHeight(double height)
-{
-	this->height = height;
-}
-
-double Quad::getWidth()
-{
-	return width;
-}
-
-void  Quad::setWidth(double width)
-{
-	this->width = width;
-}
-
-inline Point3f Quad::getMidPoint()
-{
-	return Point3f(width/2,height/2,0);
-}
-*/
-
-/*=====================
-
-Sprite definitions
-
-=====================*/
-
 ColorRGBA::ColorRGBA()
 {
-	_r = 0.0;
-	_g = 0.0;
-	_b = 0.0;
-	_a = 0.0;
+	_r = 1.0;
+	_g = 1.0;
+	_b = 1.0;
+	_a = 1.0;
 }
 
 ColorRGBA::ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
@@ -219,7 +168,6 @@ void Sprite::changeSpriteSheet(std::string name)
 	accumulator = 0;
 }
 
-
 void Sprite::changeSpriteSheetNoRewind(SpriteSheet *newsprite)
 {
 	if (targetspritesheet != newsprite)
@@ -256,7 +204,6 @@ SpriteFrame Sprite::getSpriteFrame()
 	return targetspritesheet->getFrame(sequence,frame);
 }
 
-
 void Sprite::setSpriteFrame(unsigned int frame)
 {
 	this->frame = frame;
@@ -267,9 +214,6 @@ SpriteSheet* Sprite::getSpriteSheet()
 	return targetspritesheet;
 }
 
-/*=====================
-Texture Definitions
-=====================*/
 
 bool Texture::loadUncompressedTGA(char *filename)
 {
@@ -289,10 +233,8 @@ bool Texture::loadUncompressedTGA(char *filename)
 
 	ifstream texturestream;
 	texturestream.open(filename,ios::binary);
-	if(texturestream.good())
-		cout << "Successfully opened texture" << endl;
-	else
-		cout << "FAILED TO OPEN" << endl;
+	if(!texturestream.good())
+		cout << "Warning: Failed to open texture " << filename << endl;
 	texturestream.read((char*)header,sizeof(header));
 
 	texturestream.read((char*)header2, sizeof(header2));				//read 6 bytes into the file to get important information
@@ -335,7 +277,6 @@ bool Texture::loadUncompressedTGA(char *filename)
 	glTexImage2D(GL_TEXTURE_2D, 0, type, this->width, this->height, 0, type, GL_UNSIGNED_BYTE, imagedata);
     delete imagedata;
 
-	cout << "Loaded texture " << filename << " with id " << texid << endl;
 	return true;
 }
 
@@ -348,22 +289,20 @@ void Texture::createEmptyTexture(int height,int width)
 	glBindTexture(GL_TEXTURE_2D, this->texid);										
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	/*
+	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);				// Set texture parameters
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	*/
+	
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagedata);
 	delete imagedata;
 	this->height = height;
 	this->width = width;
-	cout << "Created " << width << "x" << height << " empty texture with id " << this->texid << endl;
 }
 
 GLuint Texture::getHeight()
@@ -384,6 +323,7 @@ GLuint Texture::getTexId()
 Texture::Texture(){
 
 }
+
 
 Glyph::Glyph(float height,float width)
 {
@@ -417,9 +357,7 @@ SpriteFrame Glyph::getGlyph()
 	return font->TextureFont::getFrame(character);
 }
 
-/*=====================
-SpriteSheet Batcher definitions
-=====================*/
+
 inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position)
 {
 	
@@ -661,16 +599,6 @@ Vertex* SpriteBatch::getVertbuffer()
 	return vertexbuffer;
 }
 
-TexCoord* SpriteBatch::getTexCoordBuffer()
-{
-	return texcoordbuffer;
-}
-
-ColorRGBA* SpriteBatch::getColorBuffer()
-{
-	return colorbuffer;
-}
-
 GLint SpriteBatch::getBufferLength()
 {
 	return bufferpos;
@@ -699,38 +627,35 @@ SpriteBatch::SpriteBatch()
 	bufferpos = 0;
 }
 
-/*=====================
-Shader definitions
-=====================*/
+
+const char* graphics::SAMPLER_NAME = "fs_Sampler0";
+const char* graphics::TFS_TEXCOORD = "fs_TexCoord";
+const char* graphics::TFS_COLOR    = "fs_Color";
+
+const char* graphics::TVS_PROJECTION_MAT = "vs_Projection";
+const char* graphics::TVS_MODEL_VIEW_MAT = "vs_ModelView";
+
+const int   graphics::VERTEX_ATTRIBUTE_ID = 2;
+const char* graphics::VERTEX_ATTRIBUTE_NAME = "vs_Vertex";
+
+const int   graphics::TEXCOORD_ATTRIBUTE_ID = 1;
+const char* graphics::TEXCOORD_ATTRIBUTE_NAME = "vs_TexCoord";
+
+const int   graphics::COLOR_ATTRIBUTE_ID   = 0;
+const char* graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
 
 
-	const char* graphics::SAMPLER_NAME = "fs_Sampler0";
-	const char* graphics::TFS_TEXCOORD = "fs_TexCoord";
-	const char* graphics::TFS_COLOR    = "fs_Color";
-
-	const char* graphics::TVS_PROJECTION_MAT = "vs_Projection";
-	const char* graphics::TVS_MODEL_VIEW_MAT = "vs_ModelView";
-
-	const int   graphics::VERTEX_ATTRIBUTE_ID = 2;
-	const char* graphics::VERTEX_ATTRIBUTE_NAME = "vs_Vertex";
-
-	const int   graphics::TEXCOORD_ATTRIBUTE_ID = 1;
-	const char* graphics::TEXCOORD_ATTRIBUTE_NAME = "vs_TexCoord";
-
-	const int   graphics::COLOR_ATTRIBUTE_ID   = 0;
-	const char* graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
-
-	Shader::Shader(string filename,GLenum type) 
+Shader::Shader(string filename,GLenum type) 
 	{
 		this->loadFromFile(filename,type);
 	}
 
-	Shader::Shader() 
+Shader::Shader() 
 	{
 
 	}
 
-	void Shader::loadFromFile(std::string filename,GLenum type)
+void Shader::loadFromFile(std::string filename,GLenum type)
 	{
 		std::ifstream file;
 		unsigned int sourcelength;
@@ -761,8 +686,8 @@ Shader definitions
 		
 		glGetObjectParameterivARB(handle, GL_COMPILE_STATUS, &compiled);
 
-		if(compiled == GL_TRUE)
-			cout << "Shader " << filename << " compiled successfully!" << endl;
+		if(compiled != GL_TRUE)
+			cout << "Warning: Shader failed to compile!" << endl;
 		GLint blen = 0;	
 		GLsizei slen = 0;
 		glGetShaderiv(handle, GL_INFO_LOG_LENGTH , &blen);    
@@ -778,16 +703,17 @@ Shader definitions
 		}
 	}
 
-	Shader::~Shader() 
+Shader::~Shader() 
 	{
-		cout << "Tell me this isn't happening" << endl;
 		if (handle) glDeleteShader(handle);
 	}
-	ShaderProgram::ShaderProgram()
+
+
+ShaderProgram::ShaderProgram()
 	{
 	}
 
-	ShaderProgram::ShaderProgram(std::string vsfilename,std::string fsfilename) {
+ShaderProgram::ShaderProgram(std::string vsfilename,std::string fsfilename) {
 		GLint linked = 100;
 		vs = new Shader(vsfilename,GL_VERTEX_SHADER);
 		fs = new Shader(fsfilename,GL_FRAGMENT_SHADER);
@@ -799,20 +725,18 @@ Shader definitions
 		this->getUniformHandles();
 
 		glGetProgramiv(handle, GL_LINK_STATUS, &linked);
-		cout << "Program handle " << handle << endl;
-        if (linked == GL_TRUE)
-            cout << "Shader program successfully linked! " << endl;
+        if (linked != GL_TRUE)
+            cout << "Warning: Shader program failed to link" << endl;
 
 	}
 
-	ShaderProgram::~ShaderProgram() {
-		cout << "What the fuck" << endl;
+ShaderProgram::~ShaderProgram() {
 		if (vs) delete vs;
 		if (fs) delete fs;
 		if (handle) glDeleteProgram(handle);
 	}
 
-	void ShaderProgram::enable(bool state) {
+void ShaderProgram::enable(bool state) {
 		if (state) {
 			glEnable(GL_TEXTURE_2D);
 			//Sets the active texture unit, commented out since we don't need to mess with texture units
@@ -839,9 +763,7 @@ Shader definitions
 		}
 	}
 
-
-
-	void ShaderProgram::zoom(float factor)
+void ShaderProgram::zoom(float factor)
 	{
 		
 			
@@ -854,38 +776,19 @@ Shader definitions
 
 		glUniformMatrix4fv(shader_mat_proj_handle, 1, false, (float*)&proj_matrix);
 	}
-	
 
-    void ShaderProgram::getUniformHandles() {
+void ShaderProgram::getUniformHandles() {
 		glUseProgram(handle);
 		shader_mat_proj_handle = glGetUniformLocation(handle, TVS_PROJECTION_MAT);
 		shader_tex_handle      = glGetUniformLocation(handle, SAMPLER_NAME);
 		shader_mat_mv_handle   = glGetUniformLocation(handle, TVS_MODEL_VIEW_MAT);
-
-		cout << "Projection matrix at: " << shader_mat_proj_handle << endl;
-		cout << "Sampler at:           " <<  shader_tex_handle << endl;
-		cout << "Modelview matrix at:  " <<  shader_mat_mv_handle << endl;
 	}
 
-    void ShaderProgram::bindAttributes() {
-		cout << "Location of vertex attribute: " << glGetAttribLocation(handle,VERTEX_ATTRIBUTE_NAME) << endl;
-		cout << "Location of texcoord attribute: " << glGetAttribLocation(handle,TEXCOORD_ATTRIBUTE_NAME) << endl;
-		cout << "Location of color attribute: " << glGetAttribLocation(handle,COLOR_ATTRIBUTE_NAME) << endl;
+void ShaderProgram::bindAttributes() {
+
 		
 	}
-	/*
-	void VertexShader::Enable(bool state) 
-	{
 
-	}
-	*/
-
-
-
-
-/*=====================
-Renderer definitions
-=====================*/
 
 bool graphics::Init()
 {
@@ -896,22 +799,25 @@ bool graphics::Init()
         if(SDL_WasInit(SDL_INIT_VIDEO) != 0)
             break;
         else
-          cout << "Still not initialized!" << endl;
+          cout << "SDL: Still not initialized!" << endl;
     }
     SDL_WM_SetCaption( "Dragon Dildos 2: The Dickening", NULL );
 
     if( SDL_SetVideoMode( SCREEN_WIDTH*1, SCREEN_HEIGHT*1, SCREEN_BPP, SDL_OPENGL) == NULL )	// Set window properties, OpenGL is passed here
     {
+		cout << SDL_GetError() << endl;
         return false;
     }
     
-    cout << "Video mode set!" << endl;
+    cout << "SDL: Video mode set!" << endl;
 
     SDL_EnableUNICODE(1);
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
     SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
 	
-	glClearColor( 1.0,1.0,1.0,1.0 ); 
+	glEnable(GL_TEXTURE_2D);
+	
+	//glClearColor(0.0,0.0,0.0,1.0 ); 
 
                                                      // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
@@ -919,7 +825,6 @@ bool graphics::Init()
     glEnable(GL_DEPTH_TEST);
     glDepthMask(true);
     glDepthFunc(GL_LEQUAL);
-    glDepthRange(0.0f, 1.0f);
     glEnable (GL_BLEND);										//Enable blending
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);         //Set blending for our alpha-enabled textures
                                                       
@@ -928,48 +833,25 @@ bool graphics::Init()
         return false;    
     }
 
-    //Load resources here !!!
-
-    //Load extensions with GLEW
-
     GLenum err = glewInit();
 
     if(GLEW_OK != err)
-        std::cout << "OH SHIT Error: " << glewGetErrorString(err) << endl;
-	else
-		cout << "GLEW: NO ERRORS HERE" << endl;
-    if (GLEW_VERSION_1_3)
-        cout << "OpenGL 1.3 Supported!" << endl;
-    if (GLEW_VERSION_1_4)
-        cout << "OpenGL 1.4 Supported!" << endl;
-	if (GLEW_VERSION_1_5)
-        cout << "OpenGL 1.5 Supported!" << endl;
-	if (GLEW_VERSION_2_0)
-        cout << "OpenGL 2.0 Supported!" << endl;
-    if (GLEW_VERSION_2_1)
-        cout << "OpenGL 2.1 Supported!" << endl;
-	if (GLEW_VERSION_3_0)
-        cout << "OpenGL 3.0 Supported!" << endl;
-	if (GLEW_VERSION_3_1)
-        cout << "OpenGL 3.1 Supported!" << endl;
-    if (GLEW_VERSION_3_2)
-        cout << "OpenGL 3.2 Supported!" << endl;
-	if (GLEW_VERSION_3_3)
-        cout << "OpenGL 3.3 Supported!" << endl;
-    if (GLEW_VERSION_4_0)
-        cout << "OpenGL 4.0 Supported!" << endl;
-    if (GLEW_VERSION_4_1)
-        cout << "OpenGL 4.1 Supported!" << endl;
+        std::cout << "Error: " << glewGetErrorString(err) << endl;
 
-    if (glewIsSupported("GL_ARB_fragment_program"))
-        cout << "Fragment programs supported" << endl;
-    if (glewIsSupported("GL_ARB_vertex_program"))
-        cout << "Vertex programs supported" << endl;
-	if (glewIsSupported("GL_ARB_vertex_buffer_object"))
-		cout << "VBOs supported" << endl;
-    if (glewIsSupported("GL_ARB_shading_language_100")) 
+    if (!glewIsSupported("GL_ARB_fragment_program") || 
+		!glewIsSupported("GL_ARB_vertex_program") ||
+		!glewIsSupported("GL_ARB_vertex_buffer_object") ||
+		!glewIsSupported("GL_ARB_shading_language_100"))
     {  
-       int major, minor, revision;
+	   cout << "Wex: Switching to compatibility rendering mode." << endl;
+	   renderer->setRenderMode(WEX_VERTEX_ARRAYS);
+    }
+	else
+	{
+		cout << "Wex: Requisite extensions present, using normal rendering mode." << endl;
+		renderer->setRenderMode(WEX_VERTEX_BUFFER_OBJECTS);
+
+	   int major, minor, revision;
        const GLubyte* sVersion = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB);
        if (glGetError() == GL_INVALID_ENUM)
        {
@@ -977,27 +859,58 @@ bool graphics::Init()
        }
        else
        {
-          cout << "Using shading language: " << sVersion << endl;
+          cout << "OpenGL: Using shading language " << sVersion << endl;
        }
-    }
-
+	cout << "Glew: Successfully initialized." << endl;
 	graphics::loadAssets();
+	}
 }
 
-void Renderer::setDefaultRendering(bool state)
+void graphics::loadAssets()
 {
-	defaultshader->enable(state);
+
+  SpriteSheet uispritesheet;
+
+  SpriteFrame tempframe;
+  uispritesheet.loadUncompressedTGA("uisprites.tga");
+
+  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,10));
+  uispritesheet.addFrame("horizontal border",tempframe);
+  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(5,10));
+  uispritesheet.addFrame("vertical border",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,0));
+  uispritesheet.addFrame("constitution icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,0));
+  uispritesheet.addFrame("speed icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,16));
+  uispritesheet.addFrame("intelligence icon",tempframe);
+  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,16));
+  uispritesheet.addFrame("strength icon",tempframe);
+  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,0));
+  uispritesheet.addFrame("top left corner",tempframe);
+  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,0));
+  uispritesheet.addFrame("top right corner",tempframe);
+  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,5));
+  uispritesheet.addFrame("bottom right corner",tempframe);
+  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(0,5));
+  uispritesheet.addFrame("bottom left corner",tempframe);
+
+  graphics::textures["ui"] = new SpriteSheet(uispritesheet);
+  graphics::textures["uifont"] = new TextureFont("uifont.tga",192,128);
+
+  cout << "Assets successfully loaded" << endl;
+
 }
 
-void Renderer::zoom(float factor)
-{
-	defaultshader->zoom(factor);
-}
 
 Renderer::Renderer()
 {
-		glEnable(GL_TEXTURE_2D);
+}
 
+void Renderer::setRenderMode(RenderMode mode)
+{
+	if(mode == WEX_VERTEX_BUFFER_OBJECTS)
+	{
 		glGenBuffers( 1, &vbovertex);
 		glGenBuffers( 1, &vbotexture);
 		glGenBuffers( 1, &vbocolor);
@@ -1008,14 +921,16 @@ Renderer::Renderer()
 		cout << "Enabling shader" << endl;
 		defaultshader->enable(true);
 	    cout << "Getting attribute locations" << endl;
+		
 		int vertexattriboffset = glGetAttribLocation(defaultshader->getHandle(),VERTEX_ATTRIBUTE_NAME);
 		int texcoordattriboffset = glGetAttribLocation(defaultshader->getHandle(),TEXCOORD_ATTRIBUTE_NAME);;
 		int colorattriboffset = glGetAttribLocation(defaultshader->getHandle(),COLOR_ATTRIBUTE_NAME);;
 
 		cout << "Enabling attribute Arrays" << endl;
+		
+		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
 
 		glEnableVertexAttribArray(vertexattriboffset);
-		glBindBuffer(GL_ARRAY_BUFFER,vbovertex);
 		glVertexAttribPointer(vertexattriboffset,3, GL_FLOAT,0,sizeof(Vertex),(void*)0);
 
 		glEnableVertexAttribArray(texcoordattriboffset);
@@ -1023,11 +938,41 @@ Renderer::Renderer()
 
 		glEnableVertexAttribArray(colorattriboffset);
 		glVertexAttribPointer(colorattriboffset,4,GL_FLOAT,GL_TRUE,sizeof(Vertex),(void*)20);
+	}
+	if(mode == WEX_VERTEX_ARRAYS)
+	{
+		glViewport( 0.f, 0.f, SCREEN_WIDTH, SCREEN_HEIGHT ); 
+		glMatrixMode( GL_PROJECTION );
+		glLoadIdentity();
+		glOrtho( 0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 1.0, -1.0 ); 
+	    glMatrixMode( GL_MODELVIEW );
+		glLoadIdentity();
+		glClearColor(0,0,0,0);
 
-		cout << "Renderer construction complete" << endl;
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3,GL_FLOAT,sizeof(Vertex),spritebatch.getVertbuffer());
+		glDisableClientState(GL_VERTEX_ARRAY);
 
-		//Request block of memory from the device
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2,GL_FLOAT,sizeof(Vertex),&spritebatch.getVertbuffer()->texcoord);
 
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4,GL_FLOAT,sizeof(Vertex),&spritebatch.getVertbuffer()->color);
+		glDisableClientState(GL_COLOR_ARRAY);
+		
+	}
+
+	this->rendermode = mode;
+}
+
+void Renderer::setDefaultRendering(bool state)
+{
+	defaultshader->enable(state);
+}
+
+void Renderer::zoom(float factor)
+{
+	defaultshader->zoom(factor);
 }
 
 void Renderer::drawSprite(Sprite animation,Point3f position,double xscale,double yscale,double rotate)
@@ -1103,23 +1048,53 @@ void Renderer::drawQuad(Quad quad,Point3f position,double xscale,double yscale,d
 		spritebatch.addToBuffer(quad,position,xscale,yscale,rotate);
 }
 
-
 void Renderer::drawBuffer()
 {
 	
 	if(spritebatch.getBufferLength() > 0)
 	{	
-		
-		glBindBuffer( GL_ARRAY_BUFFER, vbovertex);
-		glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
-		glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
-        spritebatch.reset();
+		if(rendermode ==  WEX_VERTEX_BUFFER_OBJECTS)
+		{
+			glBindBuffer( GL_ARRAY_BUFFER, vbovertex);
+			glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
+			glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
+		}
+		else if(rendermode == WEX_VERTEX_ARRAYS)
+		{
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			
+			glDrawArrays(GL_QUADS, 0, spritebatch.getBufferLength());
+			
+			glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
+		spritebatch.reset();
 	}
 	
 }
 
 void Renderer::drawText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space)
 {
+	TextureFont* font = (TextureFont*)graphics::textures[fontname];
+	
+	Glyph character(font->getCharHeight(),font->getCharWidth());
+	character.setColor(color);
+	character.setFont(font);
+
+	for(float i = 0; i < text.size(); i+=1.0)
+	{
+		character.setGlyph(text[i]);
+        drawFixedGlyph(character,Point3f(position.x+((float)i*space),position.y,0));
+	}
+}
+
+void Renderer::drawFormattedText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space,int linelength)
+{
+	//Determine how much of the text we can render properly on one line.
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
 	
 	Glyph character(font->getCharHeight(),font->getCharWidth());
@@ -1133,6 +1108,7 @@ void Renderer::drawText(std::string fontname,std::string text,Point3f position,C
 	}
 	
 }
+
 void Renderer::moveCameraTowards(Point3f position)
 {
 	if (view.x < position.x) // camera is deeper than current position
@@ -1151,12 +1127,10 @@ void Renderer::changeTexture(int texhandle)
 	glBindTexture(GL_TEXTURE_2D,texhandle);
 }
 
-
 void Renderer::changeTexture(std::string name)
 {
 	glBindTexture(GL_TEXTURE_2D,textures[name]->getTexId());
 }
-
 
 Renderer* Renderer::Instance()
 {
@@ -1178,38 +1152,3 @@ SpriteFrame::SpriteFrame()
 
 }
 
-void graphics::loadAssets()
-{
-
-  SpriteSheet uispritesheet;
-
-  SpriteFrame tempframe;
-  uispritesheet.loadUncompressedTGA("uisprites.tga");
-
-  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,10));
-  uispritesheet.addFrame("horizontal border",tempframe);
-  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(5,10));
-  uispritesheet.addFrame("vertical border",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,0));
-  uispritesheet.addFrame("constitution icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,0));
-  uispritesheet.addFrame("speed icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,16));
-  uispritesheet.addFrame("intelligence icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,16));
-  uispritesheet.addFrame("strength icon",tempframe);
-  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,0));
-  uispritesheet.addFrame("top left corner",tempframe);
-  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,0));
-  uispritesheet.addFrame("top right corner",tempframe);
-  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,5));
-  uispritesheet.addFrame("bottom right corner",tempframe);
-  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(0,5));
-  uispritesheet.addFrame("bottom left corner",tempframe);
-
-  graphics::textures["ui"] = new SpriteSheet(uispritesheet);
-  graphics::textures["uifont"] = new TextureFont("uifont.tga");
-
-  cout << "HONK " << endl;
-
-}

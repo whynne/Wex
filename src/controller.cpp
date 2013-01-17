@@ -81,13 +81,14 @@ void Controller::update()
 
 void Controller::startTextCapture()
 {
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 	_iscapturemode = true;
 }
 
 void Controller::stopTextCapture()
 {
+	SDL_EnableKeyRepeat(0,0);
 	_iscapturemode = false;
-	_capturedtext.str("");
 }
 
 bool Controller::isTextCaptureMode()
@@ -97,22 +98,31 @@ bool Controller::isTextCaptureMode()
 
 void Controller::insertCharacter(SDL_keysym keysym)
 {
-	long pos = _capturedtext.tellp();
 	char character = keysym.unicode & 0x7F;
 
 	if(character >= 32 && character <= 127)
-		_capturedtext << character;
-	else if(character == 0x08 && pos != 0)
+		_capturedtext += character;
+	else if(character == 0x08 && _capturedtext.length() != 0)
 	{
-		_capturedtext.seekp(pos-1);
-		_capturedtext.write(" ",1);
-		_capturedtext.seekp(pos-1);
+		std::string old = _capturedtext;
+		_capturedtext = old.substr(0,old.length()-1);
 	}
 }
 
 std::string Controller::getCapturedText()
 {
-	return _capturedtext.str();
+	std::string result = _capturedtext;
+	return result;
+}
+
+void Controller::flushText()
+{
+	std::cout << "flushing text" << std::endl;
+	_capturedtext = "";
+}
+
+void Controller::setKeyRepeat(bool v)
+{
 }
 
 Controller::Controller()

@@ -1,16 +1,17 @@
-#define DEVBUILD
 #define NO_SDL_GLEXT
 #include "enginestate.h"
-#include "MainState.h"
-#include <time.h>
 #include "engine.h"
+
+#include "mainstate.h"
+#include <time.h>
+
 #include "AL/al.h"
 #include "AL/alut.h"
 #include "graphics.h"
 
-int main( int argc, char* args[] )
+int main(int argc,char* argv[])
 {
-
+	
 	Timer frametimer;
 
 	double t = 0.0;
@@ -24,16 +25,25 @@ int main( int argc, char* args[] )
 	
 	GameEngine engine;       
     srand(time(NULL));       
-	engine.init();           
-			 
-
-	EngineState* EngineState = new MainGameState;
-	EngineState->init(engine.getUserController());  
+	if(!engine.init())
+	{
+		cout << "Engine failed to initialize properly" << endl;
+		return -1;
+	}		 
+		
+	cout << "Creating state" << endl;
+	EngineState* EngineState = new MainGameState(engine);
+	cout << "Pushing state" << endl;
 	engine.pushState(EngineState);                                                    
 	frametimer.start();                           
 
+	cout << "Initializing state" << endl;
+	engine.initState();
+
+	cout << "Running engine" << endl;
 	while(engine.isRunning())
 	{
+		
 		newtime = frametimer.getTimeInSeconds();
 		frametime = newtime - currenttime;
 		currenttime = newtime;
@@ -42,28 +52,33 @@ int main( int argc, char* args[] )
 			frametime = 0.25f;
 
 		accumulator += frametime;
-
+		
 		if(eventtime >= (1/30))
 		{
-			engine.handleEvents(&engine);
+			engine.handleEvents();
 		}
 
-
+		
 
 		while (accumulator >= dt)
 		{
-		   engine.update(&engine,t,dt);
+		   engine.updateState(t,dt);
 		   accumulator -= dt;            
 		   t+=dt;                        
 		}
-
-		engine.draw(&engine);
+		
+		
+		engine.drawState(t,dt);
+		
 	}
 
 	SDL_Quit();
 
 	cout << "GAME OVER" << endl;
 
+	
+
+	
+
 	return 0;
 }
-

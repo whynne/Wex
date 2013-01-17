@@ -24,7 +24,6 @@
 // ============================================================================
 
 #pragma once
-#define NDEBUG
 #include <iostream>
 #include <string>
 #include <vector>
@@ -192,7 +191,7 @@ namespace graphics
 		SpriteFrame getFrame(int framenum);
         void buildFont(Texture& texture);      // generates font
         TextureFont();                          // default constructor
-        TextureFont(char *filename);          // generates font on construction
+        TextureFont(char *filename,int height,int width);          // generates font on construction
 		int getCharHeight(){return charheight;};
 		int getCharWidth(){return charwidth;};
     };
@@ -225,12 +224,7 @@ namespace graphics
     class SpriteBatch
     {
     private:
-		Vertex     vertexbuffer[BUFFER_SIZE];
-        
-		//Point3f    vertexbuffer[BUFFER_SIZE];
-        TexCoord   texcoordbuffer[BUFFER_SIZE];
-        ColorRGBA  colorbuffer[BUFFER_SIZE];
-		
+		Vertex     vertexbuffer[BUFFER_SIZE];		
         GLint      bufferpos;
     
     public:
@@ -240,8 +234,6 @@ namespace graphics
 		inline void addToBuffer(Glyph glyph,Point3f position);
 		inline void addToBuffer(Sprite sprite,Point3f position);
         Vertex*    getVertbuffer();
-        TexCoord*  getTexCoordBuffer();
-        ColorRGBA* getColorBuffer();
         GLint      getBufferLength();
         bool       isFull();
         void       reset();
@@ -316,6 +308,12 @@ namespace graphics
         this->height = height;
     }
 
+	enum RenderMode
+	{
+		WEX_VERTEX_BUFFER_OBJECTS,
+		WEX_VERTEX_ARRAYS
+	};
+
     class Renderer
     {
     private:
@@ -325,16 +323,18 @@ namespace graphics
         Point3f          view;
         SpriteBatch      spritebatch;
         static Renderer* instance;
+		RenderMode       rendermode;
 
         GLuint           vbovertex;
         GLuint           vbotexture;
         GLuint           vbocolor;
 		ShaderProgram    *defaultshader;
-        
-    
+
+		
+
     public:
         static  Renderer* Instance();
-
+		void    setRenderMode(RenderMode mode);
 		void    zoom(float factor);
         void    setCamera(Point3f cameraposition);
         void    moveCameraRelative(Point3f movementvector);
@@ -351,7 +351,8 @@ namespace graphics
 		void    changeShader(std::string name);
 
         void    drawText(std::string fontname,std::string text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
-        void    drawBuffer();
+        void    drawFormattedText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space,int linelength);
+		void    drawBuffer();
     };
 
 	void loadAssets();
