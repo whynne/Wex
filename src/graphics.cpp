@@ -1,5 +1,7 @@
 #include "graphics.h"
 
+
+
 using namespace graphics;
 
 Renderer* Renderer::instance = NULL;
@@ -121,12 +123,16 @@ ColorRGBA::ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 
 Sprite::Sprite()
 {
+	
 	color = ColorRGBA(1,1,1,1);
-	//Default sprite is degenerate quad.
 	targetspritesheet = 0;
 	frame = 0;
 	accumulator = 0.0;
 	frametime = 0.0;
+}
+
+Sprite::~Sprite()
+{
 }
 
 Sprite::Sprite(float height,float width)
@@ -162,6 +168,18 @@ void Sprite::changeSpriteSheet(SpriteSheet* newsprite)
 		accumulator = 0;
 }
 
+void Sprite::setWidth(int width)
+{
+	this->topright.x = width;
+	this->bottomright.x = width;
+}
+
+void Sprite::setHeight(int height)
+{
+	this->bottomright.y = height;
+	this->bottomleft.y = height;
+}
+
 void Sprite::changeSpriteSheet(std::string name)
 {
 	targetspritesheet = (SpriteSheet*)graphics::textures[name];
@@ -192,6 +210,133 @@ void Sprite::rewind()
 {
 	frame = 0;
 	accumulator = 0;
+}
+
+int graphics::l_Sprite_constructor(lua_State *L)
+{
+	cout << "Creating sprite." << endl;
+	Sprite ** udata = (Sprite **)lua_newuserdata(L, sizeof(Sprite *));
+	*udata = new Sprite();
+	luaL_getmetatable(L, "luaL_Sprite");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+int graphics::l_Sprite_setWidth(lua_State *L)
+{
+	
+	Lua lua = Lua(L);
+	lua.stackDump();
+	cout << "Setting width" << endl;
+	Sprite* sprite = l_checkSprite(L,1);
+	lua.stackDump();
+	cout << "Userdata recieved with address " << sprite << endl;
+	cout << lua_tonumber(L,2) << endl;
+	sprite->setWidth(100);
+	cout << "Width set to " << sprite->getWidth();
+	lua.stackDump();
+	return 0;
+}
+
+int graphics::l_Sprite_setHeight(lua_State *L)
+{
+	
+	Lua lua = Lua(L);
+	lua.stackDump();
+	cout << "Setting height" << endl;
+	Sprite* sprite = l_checkSprite(L,1);
+	lua.stackDump();
+	cout << "Userdata recieved with address " << sprite << endl;
+	sprite->setHeight(lua_tonumber(L,2));
+	cout << "Height set to " << sprite->getHeight();
+	
+	return 0;
+}
+
+int graphics::l_Sprite_getWidth(lua_State *L)
+{
+	cout << "GetWidth called" << endl;
+	Sprite* sprite = l_checkSprite(L,1);
+	lua_pushnumber(L,sprite->getWidth());
+	return 1;
+}
+
+int graphics::l_Sprite_getHeight(lua_State *L)
+{
+	cout << "GetHeight called" << endl;
+	Sprite* sprite = l_checkSprite(L,1);
+	lua_pushnumber(L,sprite->getHeight());
+	return 1;
+}
+
+int graphics::l_Sprite_destructor(lua_State *L)
+{
+	return 1;
+}
+
+int graphics::l_Sprite_changeSequence(lua_State *L)
+{
+	return 1;
+}
+
+int graphics::l_Sprite_changeSpriteSheet(lua_State *L)
+{
+	return 1;
+}
+
+int graphics::l_Sprite_play(lua_State *L)
+{
+	Sprite* sprite = l_checkSprite(L,1);
+	sprite->play(10);
+	return 0;
+}
+
+int graphics::l_Sprite_stop(lua_State *L)
+{
+	return 1;
+}
+
+int graphics::l_Sprite_rewind(lua_State *L)
+{
+	return 1;
+}
+
+Sprite* graphics::l_checkSprite(lua_State *L, int n)
+{
+	 return *(Sprite **)luaL_checkudata(L, n, "luaL_Sprite");
+}
+
+
+void graphics::registerSprite(lua_State *L)
+{
+	
+	luaL_Reg sSpriteRegs[] =
+	{
+		{ "new",              l_Sprite_constructor },
+		{ "setWidth",         l_Sprite_setWidth},
+		{ "setHeight",        l_Sprite_setHeight},
+		{ "getWidth",         l_Sprite_getWidth},
+		{ "getHeight",        l_Sprite_getHeight},
+		{ "__gc",             l_Sprite_destructor},
+		{NULL,NULL}
+	};
+	// Create a luaL metatable. This metatable is not
+	// exposed to Lua. The "luaL_Sprite" label is used by luaL
+	// internally to identity things.
+
+	Lua lua = Lua(L);
+	lua.stackDump();
+
+	luaL_newmetatable(L, "luaL_Sprite");
+	lua.stackDump();
+	luaL_setfuncs (L, sSpriteRegs, 0);
+	lua.stackDump();
+	lua_pushvalue(L, -1);
+	lua.stackDump();
+	lua_setfield(L, -1, "__index");
+	lua.stackDump();
+	lua_setglobal(L, "Sprite");
+	lua.stackDump();
 }
 
 Point3f Sprite::getOffset()
@@ -1151,4 +1296,6 @@ SpriteFrame::SpriteFrame()
 {
 
 }
+
+
 

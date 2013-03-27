@@ -48,6 +48,7 @@ public:
 
 	bool mouseMoved();
 
+	void backspace();
 	void flushText();
 	void setMousePos(Point2d newpos);
 	void update();

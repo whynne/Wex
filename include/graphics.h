@@ -23,7 +23,10 @@
 // IN THE SOFTWARE.
 // ============================================================================
 
+
+
 #pragma once
+#include <luainterface.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -36,6 +39,7 @@
 #include "vec.h"
 #include "matrix.h"
 
+
 using std::string;
 using std::cout;
 using std::endl;
@@ -46,12 +50,12 @@ using std::ios_base;
 using std::ifstream;
 
 
-#define renderer graphics::Renderer::Instance()
-
 const unsigned int SCREEN_HEIGHT = 720;
 const unsigned int SCREEN_WIDTH = 960;
 const unsigned int SCREEN_BPP = 32;
 const unsigned int BUFFER_SIZE = 14400;
+
+#define renderer graphics::Renderer::Instance()
 
 namespace graphics
 {
@@ -65,6 +69,19 @@ namespace graphics
 	class Sprite;
 	class Quad;
 
+	int l_Sprite_constructor(lua_State *L);
+	int l_Sprite_destructor(lua_State *L);
+	int l_Sprite_setWidth(lua_State *L);
+	int l_Sprite_setHeight(lua_State *L);
+	int l_Sprite_getWidth(lua_State *L);
+	int l_Sprite_getHeight(lua_State *L);
+	int l_Sprite_changeSequence(lua_State *L);
+	int l_Sprite_changeSpriteSheet(lua_State *L);
+	int l_Sprite_play(lua_State *L);
+	int l_Sprite_stop(lua_State *L);
+	int l_Sprite_rewind(lua_State *L);
+	Sprite* l_checkSprite(lua_State *L, int n);
+	void registerSprite(lua_State *L);
 	
     bool Init();
 
@@ -134,14 +151,12 @@ namespace graphics
 		Point2f        bottomright;
 		Point2f        bottomleft;
 		Point3f        midpoint;
-        ColorRGBA    color;
+        ColorRGBA      color;
     public:
         ColorRGBA     getColor();
         void          setColor(ColorRGBA color);
-		float        getHeight(){return topright.x-topleft.x;};
-        //void          setHeight(double height);
-		float        getWidth(){return bottomleft.y-topleft.y;};;
-        //void          setWidth(double width);
+		float         getHeight(){return bottomright.y;};
+		float         getWidth(){return topright.x;};
         inline Point3f getMidPoint();
 
         Quad();
@@ -162,7 +177,9 @@ namespace graphics
 
     public:
       Sprite();
+	  ~Sprite();
 	  Sprite(float height,float width);
+
       SpriteSheet*  getSpriteSheet();
       void          setSpriteSheet(string name);
 	  void          setSpriteSheet(SpriteSheet* spritesheet);
@@ -175,6 +192,8 @@ namespace graphics
       void playOnce();
       void stop();
       void rewind();
+	  void setWidth(int width);
+	  void setHeight(int height);
       void changeSequence(string sequence);
       void changeSpriteSheet(SpriteSheet* newsheet);
 	  void changeSpriteSheet(std::string name);
@@ -224,6 +243,7 @@ namespace graphics
     class SpriteBatch
     {
     private:
+		vector<Sprite> sprites;
 		Vertex     vertexbuffer[BUFFER_SIZE];		
         GLint      bufferpos;
     
@@ -240,6 +260,8 @@ namespace graphics
         
         SpriteBatch();
     };
+
+
 
     class Shader {
         GLchar* source;
@@ -357,3 +379,4 @@ namespace graphics
 
 	void loadAssets();
 };
+

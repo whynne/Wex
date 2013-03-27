@@ -6,6 +6,11 @@ RegistrationUnit& Lua::operator[](string b)
 	return regunit;
 }
 
+void Lua::pushGlobalTable()
+{
+	lua_pushglobaltable(L);
+}
+
 void RegistrationUnit::setLabel(string name)
 {
 	label = name;
@@ -14,24 +19,55 @@ void RegistrationUnit::setLabel(string name)
 void RegistrationUnit::operator=(int value)
 {
 	lua_pushnumber(L,value);
-	lua_setglobal(L,label.c_str());
+	lua_setfield(L,-2,label.c_str());
 }
 
 void RegistrationUnit::operator=(string value)
 {
 	lua_pushstring(L,value.c_str());
-	lua_setglobal(L,label.c_str());
+	lua_setfield(L,-2,label.c_str());
 }
 
-void RegistrationUnit::operator=(Nil nil)
+void RegistrationUnit::push()
 {
-	lua_pushnil(L);
-	lua_setglobal(L,label.c_str());
+	lua_getfield(L,-1,label.c_str());
+}
+
+void Lua::setField(string field,lua_CFunction function)
+{
+	lua_pushcfunction(L,function);
+	lua_setfield(L,-2,field.c_str());
+}
+
+void Lua::setField(string field,luatypes type)
+{
+	if(type == newtable)
+	{
+		lua_newtable(L);
+		lua_setfield(L,-2,field.c_str());
+	}
+	
+}
+
+void Lua::pop()
+{
+	lua_pop(L,1);
+}
+
+
+void RegistrationUnit::operator=(luatypes type)
+{
+	if(type == nil)
+		lua_pushnil(L);
+	else if(type == newtable)
+		lua_newtable(L);
+	lua_setfield(L,-2,label.c_str());
 }
 
 void RegistrationUnit::operator=(lua_CFunction function)
 {
-	lua_register(L,label.c_str(),function);
+	lua_pushcfunction(L,function);
+	lua_setfield(L,-2,label.c_str());
 }
 
 RegistrationUnit::operator bool()
@@ -54,7 +90,7 @@ RegistrationUnit::operator string()
 
 Lua::Lua()
 {
-	L = lua_open();
+	L = luaL_newstate();
     luaL_openlibs(L);
 
 	regunit = RegistrationUnit(L);
@@ -62,9 +98,7 @@ Lua::Lua()
 
 Lua::Lua(lua_State* L)
 {
-	L = lua_open();
-    luaL_openlibs(L);
-
+	this->L = L;
 	regunit = RegistrationUnit(L);
 }
 
@@ -115,7 +149,7 @@ RegistrationUnit::RegistrationUnit(lua_State* L)
 
 void RegistrationUnit::call()
 {
-	lua_getglobal(L,label.c_str());
+	lua_getfield(L,-1,label.c_str());
 	lua_pcall(L, 0, LUA_MULTRET, 0);
 }
 

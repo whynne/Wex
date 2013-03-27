@@ -85,6 +85,12 @@ void Controller::startTextCapture()
 	_iscapturemode = true;
 }
 
+void Controller::backspace()
+{
+	std::string old = _capturedtext;
+	_capturedtext = old.substr(0,old.length()-1);
+}
+
 void Controller::stopTextCapture()
 {
 	SDL_EnableKeyRepeat(0,0);
@@ -117,7 +123,6 @@ std::string Controller::getCapturedText()
 
 void Controller::flushText()
 {
-	std::cout << "flushing text" << std::endl;
 	_capturedtext = "";
 }
 

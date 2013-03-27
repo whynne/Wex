@@ -1,8 +1,6 @@
 #define NO_SDL_GLEXT
-#include "enginestate.h"
-#include "engine.h"
 
-#include "mainstate.h"
+#include "engine.h"
 #include <time.h>
 
 #include "AL/al.h"
@@ -11,6 +9,7 @@
 
 int main(int argc,char* argv[])
 {
+	
 	
 	Timer frametimer;
 
@@ -30,17 +29,8 @@ int main(int argc,char* argv[])
 		cout << "Engine failed to initialize properly" << endl;
 		return -1;
 	}		 
-		
-	cout << "Creating state" << endl;
-	EngineState* EngineState = new MainGameState(engine);
-	cout << "Pushing state" << endl;
-	engine.pushState(EngineState);                                                    
-	frametimer.start();                           
-
-	cout << "Initializing state" << endl;
-	engine.initState();
-
-	cout << "Running engine" << endl;
+                 
+	frametimer.start();                 
 	while(engine.isRunning())
 	{
 		
@@ -52,33 +42,23 @@ int main(int argc,char* argv[])
 			frametime = 0.25f;
 
 		accumulator += frametime;
-		
-		if(eventtime >= (1/30))
+		eventtime += frametime;
+
+		if(eventtime >= (1.0/30.0))
 		{
+			eventtime = 0.0;
 			engine.handleEvents();
 		}
 
-		
-
 		while (accumulator >= dt)
 		{
-		   engine.updateState(t,dt);
+		   engine.update(t,dt);
 		   accumulator -= dt;            
 		   t+=dt;                        
 		}
-		
-		
-		engine.drawState(t,dt);
-		
+		engine.draw(t,dt);
 	}
-
+	
 	SDL_Quit();
-
-	cout << "GAME OVER" << endl;
-
-	
-
-	
-
 	return 0;
 }

@@ -3,7 +3,7 @@
 #ifndef H_AUDIO
 #define H_AUDIO
 
-/*
+
 #include "vec.h"
 #include "AL/al.h"
 #include "AL/alut.h"
@@ -48,5 +48,5 @@ namespace audio
 
 }
 
-*/
+
 #endif

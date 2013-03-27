@@ -1,6 +1,7 @@
 #include "ui.h"
 
 
+
 typedef std::deque<string>::iterator StringDequeIt;
 typedef std::vector<LogLine>::iterator LogLineIt;
 
@@ -161,7 +162,7 @@ Console::Console()
 	rows = 5;
 	columns = 20;
 	topline = 0;
-	color = ColorRGBA(0,0,1,1);
+	color = ColorRGBA(1,1,1,1);
 	position = Point3f(0,0,0);
 	displaybuffer.push_back("");
 	linebuffer.push_back(LogLine("",columns));
@@ -174,7 +175,7 @@ LSConsole::LSConsole()
 	rows = 5;
 	columns = 20;
 	topline = 0;
-	color = ColorRGBA(1,1,0,1);
+	color = ColorRGBA(1,1,1,1);
 	position = Point3f(0,0,0);
 	this->setFont("uifont");
 }
@@ -209,7 +210,7 @@ void LSConsole::draw()
 	int i = 0;
 	for(StringDequeIt it = displaybuffer.end()-1;i<=rows-1;yoffset+=yspacing,i++)
 	{
-		renderer->drawText("uifont",*it,position+Point3f(0,yspacing*rows,0)+Point3f(16,-5,0)-Point3f(0,yoffset,0),ColorRGBA(1,0,1,1),xspacing);
+		renderer->drawText("uifont",*it,position+Point3f(0,yspacing*rows,0)+Point3f(16,-5,0)-Point3f(0,yoffset,0),ColorRGBA(1,1,1,1),xspacing);
 		if(it==displaybuffer.begin())
 			break;
 		it--;
@@ -247,7 +248,6 @@ void drawWindow(Point3f pos,float height,float width)
 	renderer->drawSprite(corner,pos+Point3f(width+corner.getWidth(),height+corner.getHeight(),0));
 	corner.changeSequence("bottom left corner");
 	renderer->drawSprite(corner,pos+Point3f(0,height+corner.getHeight(),0));
-
 	renderer->drawBuffer();
 	
 }

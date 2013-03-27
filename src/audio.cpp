@@ -2,7 +2,7 @@
 
 #include "audio.h"
 
-/*
+
 using namespace audio;
 
 using std::cout;
@@ -101,4 +101,3 @@ void audio::Source::setPosition(Point3f position)
 {
 	alSource3f(id,AL_POSITION,position.x,position.y,position.z);
 }
-*/

@@ -82,7 +82,6 @@ public:
 
 	Vec3();
 	Vec3(T x,T y,T z);
-
 	T normal();
 
 	Vec3<T> operator=(const Vec2<T> &op2)
@@ -156,7 +155,6 @@ public:
     {	
 		return Vec3<T>(op1 - op2.x,op1 - op2.y,op1 - op2.z);
     };
-
 	friend T dot(const Vec3<T> &op1,const Vec3<T> &op2)
     {	
 		return (op1.x * op2.x + op1.y * op2.y + op1.z * op2.z);
@@ -204,6 +202,7 @@ T Vec3<T>::normal()
 {
 	return sqrt(x*x+y*y+z*z);
 }
+
 
 
 typedef Vec3<int>    Point3i;

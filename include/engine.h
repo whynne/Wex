@@ -11,54 +11,68 @@
 #include "graphics.h"
 #include "audio.h"
 #include "timer.h"
+#include "ui.h"
+#include "luainterface.h"
 #include "controller.h"
 #include "opengl.h"
 #include "triglookup.h"
 
-class EngineState;
-class GameEngine;
-
 class GameEngine
 {
 private:
-
 	bool running;
     SDL_Event event;
     Timer fps;
-	vector<EngineState*> statestack;
-    static Controller controller;
+	Lua lua;
+    
+	static Controller controller;
+	static LSConsole* console;
+	static audio::Source source;
+	static audio::AudioBuffer buffer;
 
 public:
-	
-	static Controller& getController();
 	GameEngine();
+
 	bool isRunning();
 	bool init();
-	
-    void changeState(EngineState *state);
-    void pushState(EngineState *state);
-    void popState(EngineState *state);
     
 	void handleEvents();
-	void initState();
-    void updateState(double time,double delta);
-    void drawState(double t,double dt);
-
-};
-
-class EngineState
-{
-protected:
-	int frames;
-	GameEngine* engine;
-public:
+    void update(double time,double delta);
+    void draw(double t,double dt);
 	
-	virtual void initState() = 0;
-	virtual void cleanup() = 0;
-	virtual void pause() = 0;
-	virtual void resume() = 0;
-	virtual void handleEvents() = 0;
-	virtual void updateState(double time,double deltatime) = 0;
-	virtual void drawState(double t,double dt) = 0;
+	static int l_console_print(lua_State* L);
+	static int l_console_setPosition(lua_State* L);
+	static int l_console_show(lua_State* L);
+	static int l_console_hide(lua_State* L);
+	static int l_console_setRows(lua_State* L);
+	static int l_console_setColumns(lua_State* L);
+	static int l_console_getCommand(lua_State* L);
+	
+	static int l_audio_loadOgg(lua_State* L);
+	static int l_audio_playOgg(lua_State* L);
+	
+	static int l_main_handleEvents(lua_State* L);
+	static int l_main_update(lua_State* L);
+	static int l_main_draw(lua_State* L);
+
+	static int l_input_keyPressed(lua_State* L);
+	static int l_input_keyReleased(lua_State* L);
+	static int l_input_keyHeld(lua_State* L);
+
+	static int l_graphics_drawSprite(lua_State* L);
+
+	void setKeyConstants();
 	
 };
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
