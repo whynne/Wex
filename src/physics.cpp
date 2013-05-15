@@ -1,5 +1,7 @@
 #include "physics.h"
 
+using namespace physics;
+
 State interpolate(const State &previous, const State &current, float alpha)
 {
 	State state;
@@ -36,7 +38,7 @@ Derivative PhysState::evaluate(double t, double dt, const Derivative &d)
 
 Point3d PhysState::acceleration(const State &newstate, double t)
 {
-	 return state.f/state.m;
+	return state.f;
 }
 
 void PhysState::integrate(double t, double dt)
@@ -66,7 +68,7 @@ PhysState::PhysState()
 	state.v = Point3d(0,0,0);
 	state.f = Point3d(0,0,0);
 
-	state.m = 10;
+	state.m = 1;
 
 	prevstate.p = state.p;
 	prevstate.v = state.v;
@@ -75,4 +77,69 @@ PhysState::PhysState()
 void PhysState::ApplyForce(Point3d force)
 {
 	state.f = state.f + force;
+}
+
+int physics::l_PhysState_constructor(lua_State *L)
+{
+	cout << "Creating new physics object" << endl;
+	PhysState ** udata = (PhysState **)lua_newuserdata(L, sizeof(PhysState *));
+	*udata = new PhysState();
+	luaL_getmetatable(L, "luaL_PhysState");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+int physics::l_PhysState_destructor(lua_State *L)
+{
+	return 0;
+}
+
+int physics::l_PhysState_applyForce(lua_State *L)
+{
+	PhysState* state = l_checkPhysState(L,1);
+	Vector3d vec = Vector3d(getArgNumber(2,L),getArgNumber(3,L),getArgNumber(4,L));
+	state->ApplyForce(vec);
+	return 0;
+}
+
+int physics::l_PhysState_integrate(lua_State *L)
+{
+	PhysState* state = l_checkPhysState(L,1);
+	state->integrate(getArgNumber(2,L),getArgNumber(3,L));
+	return 0;
+}
+
+PhysState* physics::l_checkPhysState(lua_State *L, int n)
+{
+	return *(PhysState **)luaL_checkudata(L, n, "luaL_PhysState");
+}
+
+void physics::registerPhysState(lua_State *L)
+{
+	
+	luaL_Reg sPhysStateRegs[] =
+	{
+		{ "new",              l_PhysState_constructor},
+		{ "applyForce",       l_PhysState_applyForce},
+		{ "integrate" ,       l_PhysState_integrate},
+		{ "__gc",             l_PhysState_destructor},
+		{NULL,NULL}
+	};
+	// Create a luaL metatable. This metatable is not
+	// exposed to Lua. The "luaL_Sprite" label is used by luaL
+	// internally to identity things.
+
+	Lua lua = Lua(L);
+	lua.stackDump();
+
+	luaL_newmetatable(L, "luaL_PhysState");
+	lua.stackDump();
+	luaL_setfuncs (L, sPhysStateRegs, 0);
+	lua.stackDump();
+	lua_pushvalue(L, -1);
+	lua.stackDump();
+	lua_setfield(L, -1, "__index");
+	lua.stackDump();
+	lua_setglobal(L, "PhysState");
+	lua.stackDump();
 }

@@ -69,6 +69,21 @@ namespace graphics
 	class Sprite;
 	class Quad;
 
+	//Quad lua bindings
+
+	int l_Quad_constructor(lua_State *L);
+	int l_Quad_destructor(lua_State *L);
+	int l_Quad_setColor(lua_State *L);
+	int l_Quad_getColor(lua_State *L);
+	int l_Quad_setWidth(lua_State *L);
+	int l_Quad_getHeight(lua_State *L);
+	int l_Quad_getWidth(lua_State *L);
+	int l_Quad_setHeight(lua_State *L);
+	Quad* l_checkQuad(lua_State *L, int n);
+	void registerQuad(lua_State *L);
+
+	//Sprite lua bindings
+
 	int l_Sprite_constructor(lua_State *L);
 	int l_Sprite_destructor(lua_State *L);
 	int l_Sprite_setWidth(lua_State *L);
@@ -83,6 +98,15 @@ namespace graphics
 	Sprite* l_checkSprite(lua_State *L, int n);
 	void registerSprite(lua_State *L);
 	
+	//SpriteSheet lua bindings
+
+	int l_SpriteSheet_constructor(lua_State *L);
+	int l_SpriteSheet_destructor(lua_State *L);
+	int l_SpriteSheet_addFrame(lua_State *L);
+	int l_SpriteSheet_loadImage(lua_State *L);
+	SpriteSheet* l_checkSpriteSheet(lua_State *L, int n);
+	void registerSpriteSheet(lua_State *L);
+
     bool Init();
 
 	extern map<string,graphics::Texture*>       textures;
@@ -156,7 +180,9 @@ namespace graphics
         ColorRGBA     getColor();
         void          setColor(ColorRGBA color);
 		float         getHeight(){return bottomright.y;};
+		void          setHeight(float height);
 		float         getWidth(){return topright.x;};
+		void          setWidth(float width);
         inline Point3f getMidPoint();
 
         Quad();
@@ -180,6 +206,7 @@ namespace graphics
 	  ~Sprite();
 	  Sprite(float height,float width);
 
+	  int           getTexHandle(){return targetspritesheet->getTexId();};
       SpriteSheet*  getSpriteSheet();
       void          setSpriteSheet(string name);
 	  void          setSpriteSheet(SpriteSheet* spritesheet);
@@ -221,6 +248,7 @@ namespace graphics
 		char character;
 		TextureFont* font;
 	public:
+		int getTexHandle(){return font->getTexId();};
 		void setFont(TextureFont* font);
 		SpriteFrame getGlyph();
 		void setGlyph(char character);
@@ -339,6 +367,13 @@ namespace graphics
     class Renderer
     {
     private:
+
+		//This is a really shitty hack that I put in because I haven't implemented sorting.  Not really going to need sorting
+		//In this game, when you think about it.
+
+		int currenttex;
+		bool changeTexHandle(int handle);
+
         Renderer();
         Renderer&         operator=(Renderer const&){};
 

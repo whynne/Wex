@@ -27,8 +27,8 @@ struct Keydata
 class Controller
 {
 private:
-	Point2d _prevmousepos;
-	Point2d _mouseposition;
+	Point2i _prevmousepos;
+	Point2i _mouseposition;
 	bool _mousemoved;
 	bool _mousedown;  
 	bool _iscapturemode;
@@ -41,7 +41,7 @@ public:
 	void releaseKey(int key);
 
 	//Query
-	Point2d getMousePos();
+	Point2i getMousePos();
 	bool  keyPressed(int key);
 	bool  keyReleased(int key);
 	bool  keyHeld(int key);
@@ -50,7 +50,7 @@ public:
 
 	void backspace();
 	void flushText();
-	void setMousePos(Point2d newpos);
+	void updateMouse();
 	void update();
 	bool isTextCaptureMode();
 	void pasteClipboard();

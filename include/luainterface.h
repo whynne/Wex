@@ -31,6 +31,8 @@ private:
 public:
 	void setLabel(string name);
 	void operator=(int value);
+	void operator=(float value);
+	void operator=(double value);
 	void operator=(string value);
 	void operator=(luatypes type);
 	void operator=(lua_CFunction function);

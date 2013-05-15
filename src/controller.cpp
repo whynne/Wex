@@ -5,7 +5,7 @@ Keydata::Keydata()
 	state = unmapped;
 }
 
-Point2d Controller::getMousePos()
+Point2i Controller::getMousePos()
 {
 	return _mouseposition;
 }
@@ -49,9 +49,9 @@ bool Controller::keyReleased(int key)
 		return false;
 }
 
-void Controller::setMousePos(Point2d newpos)
+void Controller::updateMouse()
 {
-	_mouseposition = newpos;
+	SDL_GetMouseState(&_mouseposition.x,&_mouseposition.y);
 }
 
 void Controller::update()
@@ -132,7 +132,7 @@ void Controller::setKeyRepeat(bool v)
 
 Controller::Controller()
 {
-	_mouseposition = Point2d(0.0,0.0);
+	_mouseposition = Point2i(0,0);
 	_mousemoved = false;
 	_mousedown = false;
 	_iscapturemode = false;

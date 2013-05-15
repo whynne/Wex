@@ -31,7 +31,7 @@ bool GameEngine::init()
 		return false;
 	}
 	cout << "Graphics successfully initialized!" << endl;
-	
+	glClearColor(0,.2,.6,1);
 
 	//OpenAL init
 
@@ -40,7 +40,7 @@ bool GameEngine::init()
 	source = audio::Source::Source();
     console = new LSConsole();
 
-	console->setColor(graphics::ColorRGBA(1,1,1,1));
+	console->setColor(graphics::ColorRGBA(0,1,0,1));
   
 	
 	console->setFont("uifont");
@@ -51,6 +51,9 @@ bool GameEngine::init()
 	lua.pushGlobalTable();
 
 	graphics::registerSprite(lua.getState());
+	graphics::registerSpriteSheet(lua.getState());
+	graphics::registerQuad(lua.getState());
+	physics::registerPhysState(lua.getState());
 
 	setKeyConstants();
     lua["wex"] = newtable;
@@ -60,7 +63,6 @@ bool GameEngine::init()
 		lua["physics"] = newtable;
 		lua["graphics"] = newtable;
 		lua["input"] = newtable;
-
 		lua["console"].push();
 		    lua["print"]       = l_console_print;
 		    lua["setPosition"] = l_console_setPosition;
@@ -68,6 +70,7 @@ bool GameEngine::init()
 		    lua["hide"]        = l_console_hide;
 		    lua["setRows"]     = l_console_setRows;
 		    lua["setColumns"]  = l_console_setColumns;
+			lua["setColor"]    = l_console_setColor;
 		lua.pop();
 		
 		lua["audio"].push();
@@ -77,12 +80,14 @@ bool GameEngine::init()
 
 		lua["graphics"].push();
 		    lua["drawSprite"] = l_graphics_drawSprite;
+			lua["drawQuad"] = l_graphics_drawQuad;
 		lua.pop();
 
 		lua["input"].push();
 		    lua["keyPressed"]  = l_input_keyPressed;
 		    lua["keyHeld"]     = l_input_keyHeld;
 			lua["keyReleased"] = l_input_keyReleased;
+			lua["getMousePosition"] = l_input_getMousePosition;
 		lua.pop();
     lua.pop();
 
@@ -114,9 +119,15 @@ void GameEngine::handleEvents()
         }
         else if (event.type == SDL_KEYUP)
             controller.releaseKey(event.key.keysym.sym);	
-        else if ( event.type == SDL_MOUSEMOTION ) 
+        else if ( event.type == SDL_MOUSEBUTTONDOWN ) 
         {
-            
+			lua["wex"].push();
+			lua["mouseDown"].push();
+			    lua_pushnumber(lua.getState(),event.button.x);
+			    lua_pushnumber(lua.getState(),event.button.y);
+			    lua_pushnumber(lua.getState(),event.button.button);
+				lua_pcall(lua.getState(), 3, LUA_MULTRET, 0);
+			lua.pop();
         }
     }
 	
@@ -145,6 +156,7 @@ void GameEngine::handleEvents()
     lua.pop();
 
 	controller.update();
+	controller.updateMouse();
 }
 
 
@@ -154,20 +166,16 @@ void GameEngine::draw(double t,double dt)
 	glClearDepth(1.0f);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	
+	lua["wex"].push();
+    lua["draw"].call();
+    lua.pop();
 	
 	if(controller.isTextCaptureMode())
 	{
 		drawWindow(console->getPosition()+Point3f(0,console->getWindowHeight()+8,0),20, controller.getCapturedText().length() < console->getColumns() ? console->getWindowWidth() : (8*(controller.getCapturedText().length()+2)));
-		renderer->changeTexture("uifont");
 		renderer->drawText("uifont",controller.getCapturedText() + blink(10,t),console->getPosition()+Point3f(16,console->getWindowHeight()+20,0),ColorRGBA(1,1,1,1),8.0);
-		renderer->drawText("uifont","wex v0.1a",Point3f(10,10,0),ColorRGBA(1,1,1,1),8.0);
-		renderer->drawBuffer();
 		console->draw();
 	}
-  
-  lua["wex"].push();
-  lua["draw"].call();
-  lua.pop();
   SDL_GL_SwapBuffers();
   
 }
@@ -175,7 +183,9 @@ void GameEngine::draw(double t,double dt)
 void GameEngine::update(double t,double dt)
 {
     lua["wex"].push();
-	lua["update"].call();
+		lua["time"] = t;
+		lua["delta"] = dt;
+		lua["update"].call();
 	lua.pop();
 }
 
@@ -221,6 +231,13 @@ int GameEngine::l_console_setRows(lua_State* L)
 	console->setRows(getArgNumber(1,L));
 	return 0;
 }
+
+int GameEngine::l_console_setColor(lua_State* L)
+{
+	console->setColor(ColorRGBA(getArgNumber(1,L),getArgNumber(2,L),getArgNumber(3,L),getArgNumber(4,L)));
+	return 0;
+}
+
 int GameEngine::l_console_setColumns(lua_State* L)
 {
 	console->setColumns(getArgNumber(1,L));
@@ -295,28 +312,82 @@ int GameEngine::l_input_keyHeld(lua_State* L)
 	lua_pushboolean(L,result);
 	return 1;
 }
+int GameEngine::l_input_getMousePosition(lua_State* L)
+{
+	int x = controller.getMousePos().x;
+	int y = controller.getMousePos().y;
+	lua_pushnumber(L,x);
+	lua_pushnumber(L,y);
+	return 2;
+}
 
 int GameEngine::l_graphics_drawSprite(lua_State* L)
 {
-	Sprite* sprite = (Sprite*)getArgUserData(1,L);
-	cout << sprite->getHeight() << endl;
-	cout << sprite->getWidth() << endl;
+	Sprite* sprite = l_checkSprite(L,1);
+	Point3f position = Point3f(getArgNumber(2,L),getArgNumber(3,L),getArgNumber(4,L));
+	renderer->drawSprite(*sprite,position,1,1,0);
+	return 0;
+}
+
+int GameEngine::l_graphics_drawQuad(lua_State* L)
+{
+	Quad* quad = l_checkQuad(L,1);
+	int args = lua_gettop(L);
+	if(args == 3)
+	{
+	    Point3f position = Point3f(getArgNumber(2,L),getArgNumber(3,L),0);
+	    renderer->drawQuad(*quad,position,1,1,0);
+	    return 0;
+	}
+	if(args == 2)
+	{
+		physics::PhysState* state = physics::l_checkPhysState(L,2);
+		renderer->drawQuad(*quad,state->state.p,1,1,0);
+		return 0;
+	}
+	if(args == 6)
+	{
+		Point3f position = Point3f(getArgNumber(2,L),getArgNumber(3,L),0);
+		float xscale = getArgNumber(4,L);
+		float yscale = getArgNumber(5,L);
+		float rot = getArgNumber(6,L);
+		renderer->drawQuad(*quad,position,xscale,yscale,rot);
+		return 0;
+	}
+}
+
+int GameEngine::l_graphics_moveCameraTowards(lua_State* L)
+{
+	return 0;
+}
+
+int l_graphics_moveCameraRelative(lua_State* L)
+{
 	return 0;
 }
 
 void GameEngine::setKeyConstants()
 {
 	lua["key"] = newtable;
-	lua["key"].push();
+	lua["mouse"] = newtable;
 	
-	lua["up"]    = SDLK_UP;
-	lua["down"]  = SDLK_DOWN;
-	lua["left"]  = SDLK_LEFT;
-	lua["right"] = SDLK_RIGHT;
-	lua["enter"] = SDLK_RETURN;
-	lua["esc"]   = SDLK_ESCAPE;
-	lua["tab"]   = SDLK_TAB;
-	lua["space"] = SDLK_SPACE;
+	lua["key"].push();
+		lua["up"]    = SDLK_UP;
+		lua["down"]  = SDLK_DOWN;
+		lua["left"]  = SDLK_LEFT;
+		lua["right"] = SDLK_RIGHT;
+		lua["enter"] = SDLK_RETURN;
+		lua["esc"]   = SDLK_ESCAPE;
+		lua["tab"]   = SDLK_TAB;
+		lua["space"] = SDLK_SPACE;
+		lua["graves"] = SDLK_BACKQUOTE;
+		lua["backquote"] = SDLK_BACKQUOTE;
+		lua["insert"] = SDLK_INSERT;
+		lua["home"] = SDLK_HOME;
+	lua.pop();
 
+	lua["mouse"].push();
+		lua["left"] = SDL_BUTTON_LEFT;
+		lua["right"] = SDL_BUTTON_RIGHT;
 	lua.pop();
 }

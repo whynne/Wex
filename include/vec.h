@@ -89,7 +89,6 @@ public:
 		return Vec3<T>(op2.x,op2.y,this->z);
     };
 
-
 	void rotate(Vec3<T> pivot,float theta)
 	{
 		
@@ -104,6 +103,8 @@ public:
 		y = result.y;
 		
 	}
+
+	operator Vec3<float>(){return Vec3<float>(x,y,z);};
 
 	//OPERATOR OVERLOADS
 
@@ -202,7 +203,6 @@ T Vec3<T>::normal()
 {
 	return sqrt(x*x+y*y+z*z);
 }
-
 
 
 typedef Vec3<int>    Point3i;

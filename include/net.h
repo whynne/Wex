@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #define PLATFORM_WINDOWS  1
@@ -147,3 +148,4 @@ namespace wexnet
         UdpSessionManager();
     };
 }
+*/

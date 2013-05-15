@@ -1,39 +1,35 @@
-consolex = 20;
-consoley = 20;
+require "math"
+require "actor"
+require "edit"
+require "game"
 
-wex.console.show()
-wex.console.setRows(10)
-wex.console.setColumns(100)
-wex.console.setPosition(consolex,consoley)
-wex.console.print("Welcome to Wex v0.1a\n")
-wex.audio.load("nightandday.ogg")
-wex.audio.play("nightandday.ogg")
+mousex = 0
+mousey = 0
 
-coordtext = "dicks"
-sprite = Sprite.new()
+state = game
 
+player = Actor.new("Haas Foresydes")
 
 function wex.init()
 
 end
 
+
 function wex.handleEvents()
-    if(wex.input.keyPressed(key.down) == true or wex.input.keyHeld(key.down) == true) then
-	       consoley = consoley + 2
-		   sprite:setHeight(100)
-		   wex.console.setPosition(consolex,consoley)
+    if(wex.input.keyPressed(key.insert) == true) then
+	    state = editor
 	end
-	if(wex.input.keyPressed(key.up) == true or wex.input.keyHeld(key.up) == true) then
-	        consoley = consoley - 2
-			sprite:setWidth(100)
-		    wex.console.setPosition(consolex,consoley)
-		    wex.console.print("Y changed to "..consoley)
+	if(wex.input.keyPressed(key.home) == true) then
+	    state = game
 	end
 end
+
 
 function wex.update()
-
+    state.update()
 end
 
+
 function wex.draw()
+    state.draw()
 end

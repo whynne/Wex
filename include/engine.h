@@ -9,6 +9,7 @@
 #include "enginestate.h"
 #include "SDL\SDL.h"
 #include "graphics.h"
+#include "physics.h"
 #include "audio.h"
 #include "timer.h"
 #include "ui.h"
@@ -35,10 +36,12 @@ public:
 
 	bool isRunning();
 	bool init();
+	Lua& getLua(){return lua;};
     
 	void handleEvents();
     void update(double time,double delta);
     void draw(double t,double dt);
+
 	
 	static int l_console_print(lua_State* L);
 	static int l_console_setPosition(lua_State* L);
@@ -46,6 +49,7 @@ public:
 	static int l_console_hide(lua_State* L);
 	static int l_console_setRows(lua_State* L);
 	static int l_console_setColumns(lua_State* L);
+	static int l_console_setColor(lua_State* L);
 	static int l_console_getCommand(lua_State* L);
 	
 	static int l_audio_loadOgg(lua_State* L);
@@ -60,6 +64,12 @@ public:
 	static int l_input_keyHeld(lua_State* L);
 
 	static int l_graphics_drawSprite(lua_State* L);
+	static int l_graphics_drawQuad(lua_State* L);
+
+	static int l_graphics_moveCameraTowards(lua_State* L);
+	static int l_graphics_moveCameraRelative(lua_State* L);
+
+	static int l_input_getMousePosition(lua_State* L);
 
 	void setKeyConstants();
 	

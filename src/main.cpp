@@ -2,7 +2,7 @@
 
 #include "engine.h"
 #include <time.h>
-
+#include "luainterface.h"
 #include "AL/al.h"
 #include "AL/alut.h"
 #include "graphics.h"
@@ -15,6 +15,7 @@ int main(int argc,char* argv[])
 
 	double t = 0.0;
 	const double dt = .01;
+
 
 	double accumulator = 0.0; 
 	double frametime = 0.0;   
@@ -29,7 +30,7 @@ int main(int argc,char* argv[])
 		cout << "Engine failed to initialize properly" << endl;
 		return -1;
 	}		 
-                 
+	engine.getLua()["dt"] = dt;    
 	frametimer.start();                 
 	while(engine.isRunning())
 	{

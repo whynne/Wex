@@ -1,7 +1,6 @@
 #include "graphics.h"
 
 
-
 using namespace graphics;
 
 Renderer* Renderer::instance = NULL;
@@ -103,6 +102,20 @@ ColorRGBA Quad::getColor()
 void Quad::setColor(ColorRGBA color)
 {
 	this->color = color;
+}
+
+void Quad::setHeight(float height)
+{
+	bottomright.y = height;
+	bottomleft.y = height;
+	midpoint.y = height/2;
+}
+
+void Quad::setWidth(float width)
+{
+	topright.x = width;
+	bottomright.x = width;
+	midpoint.x = width/2;
 }
 
 ColorRGBA::ColorRGBA()
@@ -212,6 +225,115 @@ void Sprite::rewind()
 	accumulator = 0;
 }
 
+/////////////////////////////////
+// Lua bindings for Quad class
+/////////////////////////////////
+
+int graphics::l_Quad_constructor(lua_State *L)
+{
+	cout << "Creating Quad." << endl;
+	Quad ** udata = (Quad **)lua_newuserdata(L, sizeof(Quad *));
+	*udata = new Quad();
+	luaL_getmetatable(L, "luaL_Quad");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+int graphics::l_Quad_destructor(lua_State *L)
+{
+	return 0;
+}
+
+int graphics::l_Quad_setColor(lua_State *L)
+{
+	Quad* quad = l_checkQuad(L,1);
+	quad->setColor(ColorRGBA(getArgNumber(2,L),getArgNumber(3,L),getArgNumber(4,L),getArgNumber(5,L)));
+	return 0;
+}
+
+int graphics::l_Quad_setWidth(lua_State *L)
+{
+	Quad* quad = l_checkQuad(L,1);
+	quad->setWidth(getArgNumber(2,L));
+	return 0;
+}
+
+int graphics::l_Quad_setHeight(lua_State *L)
+{
+	Quad* quad = l_checkQuad(L,1);
+	quad->setHeight(getArgNumber(2,L));
+	return 0;
+}
+
+Quad* graphics::l_checkQuad(lua_State *L, int n)
+{
+	return *(Quad **)luaL_checkudata(L, n, "luaL_Quad");
+}
+
+int graphics::l_Quad_getWidth(lua_State *L)
+{
+	cout << "GetWidth called" << endl;
+	Quad* sprite = l_checkQuad(L,1);
+	lua_pushnumber(L,sprite->getWidth());
+	return 1;
+}
+
+int graphics::l_Quad_getHeight(lua_State *L)
+{
+	cout << "GetHeight called" << endl;
+	Quad* quad = l_checkQuad(L,1);
+	lua_pushnumber(L,quad->getHeight());
+	return 1;
+}
+
+int graphics::l_Quad_getColor(lua_State *L)
+{
+	cout << "GetColor called" << endl;
+	Quad* quad = l_checkQuad(L,1);
+	lua_pushnumber(L,quad->getColor()._r);
+	lua_pushnumber(L,quad->getColor()._g);
+	lua_pushnumber(L,quad->getColor()._b);
+	lua_pushnumber(L,quad->getColor()._a);
+	return 4;
+}
+
+void graphics::registerQuad(lua_State *L)
+{
+	luaL_Reg sQuadRegs[] =
+	{
+		{ "new",              l_Quad_constructor},
+		{ "setWidth",         l_Quad_setWidth},
+		{ "setHeight",        l_Quad_setHeight},
+		{ "getWidth",         l_Quad_getWidth},
+		{ "getHeight",        l_Quad_getHeight},
+		{ "setColor",         l_Quad_setColor},
+		{ "getColor",         l_Quad_getColor},
+		{ "__gc",             l_Quad_destructor},
+		{NULL,NULL}
+	};
+	// Create a luaL metatable. This metatable is not
+	// exposed to Lua. The "luaL_Quad" label is used by luaL
+	// internally to identity things.
+
+	Lua lua = Lua(L);
+	lua.stackDump();
+
+	luaL_newmetatable(L, "luaL_Quad");
+	lua.stackDump();
+	luaL_setfuncs (L, sQuadRegs, 0);
+	lua.stackDump();
+	lua_pushvalue(L, -1);
+	lua.stackDump();
+	lua_setfield(L, -1, "__index");
+	lua.stackDump();
+	lua_setglobal(L, "Quad");
+	lua.stackDump();
+}
+
+/////////////////////////////////
+// Lua bindings for Sprite class
+/////////////////////////////////
+
 int graphics::l_Sprite_constructor(lua_State *L)
 {
 	cout << "Creating sprite." << endl;
@@ -224,32 +346,15 @@ int graphics::l_Sprite_constructor(lua_State *L)
 
 int graphics::l_Sprite_setWidth(lua_State *L)
 {
-	
-	Lua lua = Lua(L);
-	lua.stackDump();
-	cout << "Setting width" << endl;
 	Sprite* sprite = l_checkSprite(L,1);
-	lua.stackDump();
-	cout << "Userdata recieved with address " << sprite << endl;
-	cout << lua_tonumber(L,2) << endl;
-	sprite->setWidth(100);
-	cout << "Width set to " << sprite->getWidth();
-	lua.stackDump();
+	sprite->setWidth(getArgNumber(2,L));
 	return 0;
 }
 
 int graphics::l_Sprite_setHeight(lua_State *L)
 {
-	
-	Lua lua = Lua(L);
-	lua.stackDump();
-	cout << "Setting height" << endl;
 	Sprite* sprite = l_checkSprite(L,1);
-	lua.stackDump();
-	cout << "Userdata recieved with address " << sprite << endl;
-	sprite->setHeight(lua_tonumber(L,2));
-	cout << "Height set to " << sprite->getHeight();
-	
+	sprite->setHeight(getArgNumber(2,L));
 	return 0;
 }
 
@@ -271,17 +376,21 @@ int graphics::l_Sprite_getHeight(lua_State *L)
 
 int graphics::l_Sprite_destructor(lua_State *L)
 {
-	return 1;
+	return 0;
 }
 
 int graphics::l_Sprite_changeSequence(lua_State *L)
 {
-	return 1;
+	Sprite* sprite = l_checkSprite(L,1);
+	sprite->changeSequence(getArgString(2,L));
+	return 0;
 }
 
 int graphics::l_Sprite_changeSpriteSheet(lua_State *L)
 {
-	return 1;
+	Sprite* sprite = l_checkSprite(L,1);
+	sprite->changeSpriteSheet(l_checkSpriteSheet(L,2));
+	return 0;
 }
 
 int graphics::l_Sprite_play(lua_State *L)
@@ -317,6 +426,8 @@ void graphics::registerSprite(lua_State *L)
 		{ "setHeight",        l_Sprite_setHeight},
 		{ "getWidth",         l_Sprite_getWidth},
 		{ "getHeight",        l_Sprite_getHeight},
+		{ "setSpriteSheet",l_Sprite_changeSpriteSheet},
+		{ "setSequence",   l_Sprite_changeSequence},
 		{ "__gc",             l_Sprite_destructor},
 		{NULL,NULL}
 	};
@@ -338,6 +449,86 @@ void graphics::registerSprite(lua_State *L)
 	lua_setglobal(L, "Sprite");
 	lua.stackDump();
 }
+
+/////////////////////////////////
+// Lua bindings for SpriteSheet class
+/////////////////////////////////
+
+
+int graphics::l_SpriteSheet_constructor(lua_State *L)
+{
+	cout << "Creating sprite sheet." << endl;
+	SpriteSheet ** udata = (SpriteSheet **)lua_newuserdata(L, sizeof(SpriteSheet *));
+	*udata = new SpriteSheet();
+	luaL_getmetatable(L, "luaL_SpriteSheet");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+int graphics::l_SpriteSheet_destructor(lua_State *L)
+{
+	return 1;
+}
+
+int graphics::l_SpriteSheet_loadImage(lua_State *L)
+{
+	SpriteSheet* sheet = l_checkSpriteSheet(L,1);
+	string filename = getArgString(2,L);
+	cout << "Loading image to spritesheet " << filename << " at address " << sheet << endl;  
+	sheet->loadUncompressedTGA((char*)filename.c_str());
+	return 0;
+}
+
+//Lua call addFrame(sequence,x,y,height,width)
+
+int graphics::l_SpriteSheet_addFrame(lua_State *L)
+{
+	SpriteSheet* sheet = l_checkSpriteSheet(L,1);
+	string sequence = getArgString(2,L);
+	Point2f topleft = Point2f(getArgNumber(3,L),getArgNumber(4,L));
+	int height = getArgNumber(5,L);
+	int width  = getArgNumber(6,L);
+
+	cout << "Adding frame to sequence " << sequence << " with height of " << height << " and width of " << width << endl;
+	sheet->addFrame(sequence,SpriteFrame(height,width,sheet,topleft));
+	return 1;
+}
+
+void graphics::registerSpriteSheet(lua_State *L)
+{
+	
+	luaL_Reg sSpriteSheetRegs[] =
+	{
+		{ "new",              l_SpriteSheet_constructor},
+		{ "addFrame",         l_SpriteSheet_addFrame},
+		{ "loadImage",        l_SpriteSheet_loadImage},
+		{ "__gc",             l_Sprite_destructor},
+		{NULL,NULL}
+	};
+	// Create a luaL metatable. This metatable is not
+	// exposed to Lua. The "luaL_Sprite" label is used by luaL
+	// internally to identity things.
+
+	Lua lua = Lua(L);
+	lua.stackDump();
+
+	luaL_newmetatable(L, "luaL_SpriteSheet");
+	lua.stackDump();
+	luaL_setfuncs (L, sSpriteSheetRegs, 0);
+	lua.stackDump();
+	lua_pushvalue(L, -1);
+	lua.stackDump();
+	lua_setfield(L, -1, "__index");
+	lua.stackDump();
+	lua_setglobal(L, "SpriteSheet");
+	lua.stackDump();
+}
+
+SpriteSheet* graphics::l_checkSpriteSheet(lua_State *L, int n)
+{
+	 return *(SpriteSheet **)luaL_checkudata(L, n, "luaL_SpriteSheet");
+}
+
 
 Point3f Sprite::getOffset()
 {
@@ -1009,6 +1200,7 @@ bool graphics::Init()
 	cout << "Glew: Successfully initialized." << endl;
 	graphics::loadAssets();
 	}
+	return true;
 }
 
 void graphics::loadAssets()
@@ -1040,6 +1232,10 @@ void graphics::loadAssets()
   tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(0,5));
   uispritesheet.addFrame("bottom left corner",tempframe);
 
+  Texture* blanktex = new Texture();
+  blanktex->createEmptyTexture(2,2);
+
+  graphics::textures["blank"] = blanktex;
   graphics::textures["ui"] = new SpriteSheet(uispritesheet);
   graphics::textures["uifont"] = new TextureFont("uifont.tga",192,128);
 
@@ -1092,7 +1288,7 @@ void Renderer::setRenderMode(RenderMode mode)
 		glOrtho( 0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 1.0, -1.0 ); 
 	    glMatrixMode( GL_MODELVIEW );
 		glLoadIdentity();
-		glClearColor(0,0,0,0);
+		glClearColor(1,1,1,1);
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3,GL_FLOAT,sizeof(Vertex),spritebatch.getVertbuffer());
@@ -1120,40 +1316,52 @@ void Renderer::zoom(float factor)
 	defaultshader->zoom(factor);
 }
 
-void Renderer::drawSprite(Sprite animation,Point3f position,double xscale,double yscale,double rotate)
+bool Renderer::changeTexHandle(int handle)
 {
-	if(spritebatch.isFull())
+	if(this->currenttex != handle)
 	{
-			drawBuffer();
-			spritebatch.reset();
-			spritebatch.addToBuffer(animation,position-view,xscale,yscale,rotate);
+		drawBuffer();
+		spritebatch.reset();
+		currenttex = handle;
+		glBindTexture(GL_TEXTURE_2D,handle);
+		return true;
 	}
 	else
-		spritebatch.addToBuffer(animation,position-view,xscale,yscale,rotate);
+		return false;
 }
 
-void Renderer::drawSprite(Sprite animation,Point3f position)
+void Renderer::drawSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate)
 {
+
 	if(spritebatch.isFull())
 	{
 			drawBuffer();
 			spritebatch.reset();
-			spritebatch.addToBuffer(animation,position-view,1.0,1.0,0);
 	}
-	else
-		spritebatch.addToBuffer(animation,position-view,1.0,1.0,0);
+	changeTexHandle(sprite.getTexHandle());
+	spritebatch.addToBuffer(sprite,position-view,xscale,yscale,rotate);
 }
 
-void Renderer::drawFixedSprite(Sprite animation,Point3f position)
+void Renderer::drawSprite(Sprite sprite,Point3f position)
 {
 	if(spritebatch.isFull())
 	{
 			drawBuffer();
 			spritebatch.reset();
-			spritebatch.addToBuffer(animation,position);
 	}
-	else
-		spritebatch.addToBuffer(animation,position);
+	changeTexHandle(sprite.getTexHandle());
+	spritebatch.addToBuffer(sprite,position-view,1.0,1.0,0);
+}
+
+void Renderer::drawFixedSprite(Sprite sprite,Point3f position)
+{
+	if(spritebatch.isFull())
+	{
+			drawBuffer();
+			spritebatch.reset();
+	}
+	changeTexHandle(sprite.getTexHandle());
+	spritebatch.addToBuffer(sprite,position);
 }
 
 void Renderer::drawFixedGlyph(Glyph glyph,Point3f position)
@@ -1162,35 +1370,31 @@ void Renderer::drawFixedGlyph(Glyph glyph,Point3f position)
 	{
 			drawBuffer();
 			spritebatch.reset();
-			spritebatch.addToBuffer(glyph,position);
 	}
-	else
-		spritebatch.addToBuffer(glyph,position);
+	changeTexHandle(glyph.getTexHandle());
+	spritebatch.addToBuffer(glyph,position);
 }
 
-void Renderer::drawFixedSprite(Sprite animation,Point3f position,double xscale,double yscale,double rotate)
+void Renderer::drawFixedSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate)
 {
 	if(spritebatch.isFull())
 	{
-
 			drawBuffer();
 			spritebatch.reset();
-			spritebatch.addToBuffer(animation,position,xscale,yscale,rotate);
 	}
-	else
-		spritebatch.addToBuffer(animation,position,xscale,yscale,rotate);
+	changeTexHandle(sprite.getTexHandle());
+	spritebatch.addToBuffer(sprite,position,xscale,yscale,rotate);
 }
 
 void Renderer::drawQuad(Quad quad,Point3f position,double xscale,double yscale,double rotate)
 {
-	if(spritebatch.isFull())
+	if(spritebatch.isFull() || changeTexHandle(::textures["blank"]->getTexId()))
 	{
 			drawBuffer();
 			spritebatch.reset();
-			spritebatch.addToBuffer(quad,position,xscale,yscale,rotate);
 	}
-	else
-		spritebatch.addToBuffer(quad,position,xscale,yscale,rotate);
+	changeTexHandle(::textures["blank"]->getTexId());
+	spritebatch.addToBuffer(quad,position,xscale,yscale,rotate);
 }
 
 void Renderer::drawBuffer()
@@ -1215,6 +1419,7 @@ void Renderer::drawBuffer()
 			glDisableClientState(GL_COLOR_ARRAY);
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			cout << "Drawing Arrays" << endl;
 		}
 
 		spritebatch.reset();

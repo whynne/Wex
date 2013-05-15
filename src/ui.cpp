@@ -197,20 +197,18 @@ void LSConsole::draw()
 	LogLineIt pos;
 	double yoffset = 0;
 	
-	drawWindow(this->position,getWindowHeight(),getWindowWidth());
-
-	renderer->changeTexture("uifont");
+	//drawWindow(this->position,getWindowHeight(),getWindowWidth());
 
 	if(font == 0)
 	{
 		cout << "Warning: No font set in console!" << endl;
 		return;
 	}
-	renderer->changeTexture(font->getTexId());
+
 	int i = 0;
 	for(StringDequeIt it = displaybuffer.end()-1;i<=rows-1;yoffset+=yspacing,i++)
 	{
-		renderer->drawText("uifont",*it,position+Point3f(0,yspacing*rows,0)+Point3f(16,-5,0)-Point3f(0,yoffset,0),ColorRGBA(1,1,1,1),xspacing);
+		renderer->drawText("uifont",*it,position+Point3f(0,yspacing*rows,0)+Point3f(16,-5,0)-Point3f(0,yoffset,0),this->color,xspacing);
 		if(it==displaybuffer.begin())
 			break;
 		it--;
@@ -232,7 +230,6 @@ void drawWindow(Point3f pos,float height,float width)
 	horizontalborder.changeSpriteSheet("ui");
 	horizontalborder.changeSequence("horizontal border");
 	corner.changeSpriteSheet("ui");
-    renderer->changeTexture("ui");
 
 	renderer->drawSprite(horizontalborder,pos+Point3f((corner.getWidth()+width)/2.0,0,0),width/corner.getWidth(),1,0);
 	renderer->drawSprite(horizontalborder,pos+Point3f((corner.getWidth()+width)/2.0,corner.getHeight()+height,0),width/corner.getWidth(),1,0);
@@ -248,8 +245,6 @@ void drawWindow(Point3f pos,float height,float width)
 	renderer->drawSprite(corner,pos+Point3f(width+corner.getWidth(),height+corner.getHeight(),0));
 	corner.changeSequence("bottom left corner");
 	renderer->drawSprite(corner,pos+Point3f(0,height+corner.getHeight(),0));
-	renderer->drawBuffer();
-	
 }
 
 void LogLine::reformat(int length)

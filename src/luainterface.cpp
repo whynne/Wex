@@ -22,6 +22,18 @@ void RegistrationUnit::operator=(int value)
 	lua_setfield(L,-2,label.c_str());
 }
 
+void RegistrationUnit::operator=(float value)
+{
+	lua_pushnumber(L,value);
+	lua_setfield(L,-2,label.c_str());
+}
+
+void RegistrationUnit::operator=(double value)
+{
+	lua_pushnumber(L,value);
+	lua_setfield(L,-2,label.c_str());
+}
+
 void RegistrationUnit::operator=(string value)
 {
 	lua_pushstring(L,value.c_str());
@@ -69,6 +81,7 @@ void RegistrationUnit::operator=(lua_CFunction function)
 	lua_pushcfunction(L,function);
 	lua_setfield(L,-2,label.c_str());
 }
+
 
 RegistrationUnit::operator bool()
 {
