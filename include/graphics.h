@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <assert.h>
 #include <fstream>
 #include "SDL/SDL.h"
@@ -67,6 +68,7 @@ namespace graphics
 	class ShaderProgram;
 	class SpriteBatch;
 	class Sprite;
+	class Polygon;
 	class Quad;
 
 	//Quad lua bindings
@@ -167,6 +169,22 @@ namespace graphics
       SpriteSheet();
     };
 
+	struct y_compare {
+		bool operator() (const Point2f& lhs, const Point2f rhs) const{
+			return lhs.y < rhs.y;
+		}
+	};
+
+	class Polygon
+	{
+	public:
+        std::set<Point2f,y_compare> verts;
+        ColorRGBA         color;
+	public:
+		void addVertex(Point2f vert);
+        Polygon();
+	};
+
     class Quad
     {
 	public:
@@ -266,6 +284,22 @@ namespace graphics
 		Point3f  point;
 		TexCoord texcoord;
 		ColorRGBA color;
+	};
+
+	class PolygonBatch
+	{
+	private:
+		vector<graphics::Polygon> polygons;
+		Vertex         vertexbuffer[BUFFER_SIZE];	
+		GLint          bufferpos;
+	public:   
+        inline void addToBuffer(Polygon polygon, Point3d position,double xscale,double yscale,double rotate);
+		inline void addToBuffer(Polygon polygon, Point3d position);
+        Vertex*     getVertbuffer();
+        GLint       getBufferLength();
+        bool        isFull();
+        void        reset();
+		PolygonBatch();
 	};
 
     class SpriteBatch

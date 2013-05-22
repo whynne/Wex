@@ -2,6 +2,7 @@
 
 
 using namespace graphics;
+using graphics::Polygon;
 
 Renderer* Renderer::instance = NULL;
 
@@ -65,6 +66,15 @@ TextureFont::TextureFont(char* filename,int height,int width)
 		}
 	}
 }
+
+//graphics::Polygon function definitions
+
+void graphics::Polygon::addVertex(Vector2f vert)
+{
+	verts.insert(vert);
+}
+
+//Quad function definitions
 
 Quad::Quad()
 {
@@ -692,6 +702,58 @@ SpriteFrame Glyph::getGlyph()
 {
 	return font->TextureFont::getFrame(character);
 }
+
+//graphics::Polygon batch definitions
+
+void graphics::PolygonBatch::addToBuffer(graphics::Polygon polygon, Point3d position,double xscale,double yscale,double rotate)
+{
+	std::set<Point2f,y_compare>::iterator it = polygon.verts.begin();
+	for(int i = 0;it != polygon.verts.end();it++,i++)
+	{
+		//Initial points
+		vertexbuffer[bufferpos+i].point.x = it->x;
+		vertexbuffer[bufferpos+i].point.y = it->y;
+	    vertexbuffer[bufferpos+i].point.z = 0;
+
+		//Scale
+	    vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point * Point3f(xscale,yscale,0);
+	    vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point * Point3f(xscale,yscale,0);
+	    vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point * Point3f(xscale,yscale,0);
+	    vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point * Point3f(xscale,yscale,0);
+	    
+	    //Rotate about center
+	    vertexbuffer[bufferpos+0].point.rotate(Point3f(0,0,0),rotate);
+	    vertexbuffer[bufferpos+1].point.rotate(Point3f(0,0,0),rotate);
+	    vertexbuffer[bufferpos+2].point.rotate(Point3f(0,0,0),rotate);
+	    vertexbuffer[bufferpos+3].point.rotate(Point3f(0,0,0),rotate);
+
+		vertexbuffer[bufferpos+0].color = polygon.color;
+	    vertexbuffer[bufferpos+1].color = polygon.color;
+	    vertexbuffer[bufferpos+2].color = polygon.color;
+		vertexbuffer[bufferpos+3].color = polygon.color;
+	}
+	//Add an extra point so that the next triangle formed by the strip is a degenerate.
+	bufferpos += polygon.verts.size();
+	vertexbuffer[bufferpos].point = *it;
+
+}
+void graphics::PolygonBatch::addToBuffer(graphics::Polygon polygon, Point3d position)
+{
+}
+Vertex* graphics::PolygonBatch::getVertbuffer()
+{
+}
+int graphics::PolygonBatch::getBufferLength()
+{
+}
+bool graphics::PolygonBatch::isFull()
+{
+}
+void graphics::PolygonBatch::reset()
+{
+}
+
+//SpriteBatch definitions
 
 
 inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position)

@@ -1,24 +1,28 @@
-Actor = {}
-Actor.__index = Actor
+require "class"
 
-function Actor.new(name)
-   local actr = {}             -- our new object
-   setmetatable(actr,Actor)    -- make Actor handle lookup
-   actr.name = name      -- initialize our object
-   actr.quad = Quad.new()
-   actr.quad:setHeight(64)
-   actr.quad:setWidth(64)
-   actr.quad:setColor(1,1,1,1)
-   actr.xvel = 0
-   actr.yvel = 0
-   actr.speed = 10
-   actr.x = 50
-   actr.y = 50
-   actr.dvx = 0
-   actr.dvy = 0
-   actr.maxv = 20
+Actor = class()
 
-   return actr
+function Actor:__init(name)
+   self.name = name
+   self.quad = Quad.new()
+   self.quad:setHeight(64)
+   self.quad:setWidth(64)
+   self.quad:setColor(1,0,0,1)
+   self.xvel = 0
+   self.yvel = 0
+   self.speed = 10
+   self.x = 200
+   self.y = 200
+   self.height = 64
+   self.width = 64
+   self.dvx = 0
+   self.dvy = 0
+   self.maxv = 20
+end
+
+function Actor:move(x,y)
+	self.x = self.x + x
+	self.y = self.y + y
 end
 
 function Actor:accelUp()
@@ -42,9 +46,11 @@ function Actor:update()
     if(wex.input.keyPressed(key.down) == true or wex.input.keyHeld(key.down) == true) then
         player:accelDown()
 	end
+
 	if(wex.input.keyPressed(key.up) == true or wex.input.keyHeld(key.up) == true) then
         player:accelUp()
 	end
+
 	if(wex.input.keyPressed(key.right) == true or wex.input.keyHeld(key.right) == true) then
         player:accelRight()
 	end
@@ -76,6 +82,10 @@ function Actor:update()
 	self.yvel = self.yvel * .95
 	self.xvel = self.xvel * .95
 	self.dvy = 0
+
 	self.dvx = 0
+
+
+
 end
 
