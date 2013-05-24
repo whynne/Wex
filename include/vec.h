@@ -1,6 +1,9 @@
 #ifndef H_VEC
 #define H_VEC
 #include "triglookup.h"
+#include <math.h>
+
+const double pi = atan(1.0)*4;
 
 // Vector
 
@@ -14,12 +17,23 @@ public:
 	Vec2();
 	Vec2(T x,T y);
 
-	Vec2<T> rotate2(Vec2<T> pivot,float theta)
+	friend Vec2<T> rotate(Vec2<T> pivot,float theta)
 	{
 		Vec2<T> result;
 		result.x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
 		result.y = pivot.y + (x - pivot.x) * sin(theta) - (y - pivot.y) * cos(theta);
 	}
+	friend bool operator==(const Vec2<T> &op1,const Vec2<T> &op2)
+    {	
+		std::cout << "It's happening" << endl;
+		return (op1.x == op2.x && op1.y == op2.y);
+    };
+	
+	friend bool operator!=(const Vec2<T> &op1,const Vec2<T> &op2)
+    {	
+		std::cout << "It's not happening" << endl;
+		return (op1.x != op2.x || op1.y != op2.y);
+    };
 
 	friend Vec2<T> operator*(const Vec2<T> &op1,const Vec2<T> &op2)
     {	
@@ -69,6 +83,30 @@ public:
     {	
     	return Vec2<T>(op1 - op2.x,op1 - op2.y);
     };
+	friend bool operator>(const Vec2<T> &op1,const Vec2<T> &op2)
+    {	
+		std::cout << "It's greater happening" << endl;
+		return op1.x > op2.x && op1.y > op2.y;
+    };
+	friend bool operator<(const Vec2<T> &op1,const Vec2<T> &op2)
+    {	
+		if(op1.x < op2.x)
+			return true;
+		else if(op1.x == op2.x)
+			return op1.y < op2.y;
+		else
+			return false;
+    };
+
+	friend double clockwiseangle(Vec2<T> p1,Vec2<T> p2)
+	{
+		Vec2<T> dp = p2-p1;
+		double result = atan2(dp.y,dp.x);
+		if(result < 0)
+			return (2*pi)+result;
+		return result;
+	};
+
 };
 
 
