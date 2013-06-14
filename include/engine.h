@@ -1,85 +1,89 @@
 #pragma once
 
+#include "begincode.h"
+
+#define NO_SDL_GLEXT
+
 #include <ctime>
 #include <vector>
 #include <math.h>
 #include <string>
 #include <sstream>
 
-#include "enginestate.h"
 #include "SDL\SDL.h"
 #include "graphics.h"
 #include "physics.h"
 #include "audio.h"
 #include "timer.h"
 #include "ui.h"
-#include "luainterface.h"
 #include "controller.h"
 #include "opengl.h"
 #include "triglookup.h"
 
-class GameEngine
+namespace wex
 {
-private:
-	bool running;
-    SDL_Event event;
-    Timer fps;
-	Lua lua;
-    
-	static Controller controller;
-	static LSConsole* console;
-	static audio::Source source;
-	static audio::AudioBuffer buffer;
+	class GameEngine;
+	class EngineState;
 
-public:
-	GameEngine();
+	class WEXAPI GameEngine
+	{
+	public:
+		int ups;
+		int dps;
+	
+		Timer frametimer;
+		Timer counter;
+	
+		double t;
+		double dt;
+	
+		double accumulator;
+		double frametime;   
+		double newtime;   
+		double eventtime;
+		double currenttime;
+	private:
+	
+		bool running;
+	    SDL_Event event;
+	    Timer fps;
+	    
+		static Controller controller;
+		static audio::Source source;
+		static audio::AudioBuffer buffer;
 
-	bool isRunning();
-	bool init();
-	Lua& getLua(){return lua;};
-    
-	void handleEvents();
-    void update(double time,double delta);
-    void draw(double t,double dt);
-
+		vector<EngineState*> states;
 	
-	static int l_console_print(lua_State* L);
-	static int l_console_setPosition(lua_State* L);
-	static int l_console_show(lua_State* L);
-	static int l_console_hide(lua_State* L);
-	static int l_console_setRows(lua_State* L);
-	static int l_console_setColumns(lua_State* L);
-	static int l_console_setColor(lua_State* L);
-	static int l_console_getCommand(lua_State* L);
+	public:
+		GameEngine();
 	
-	static int l_audio_loadOgg(lua_State* L);
-	static int l_audio_playOgg(lua_State* L);
+		void run();
+		bool isRunning();
+		bool init();
+	    void pushState(EngineState* state);
+		void popState();
+		void handleEvents();
+	    void update(double time,double delta);
+	    void draw(double t,double dt);
+		void resetCounters(){ups=0;dps=0;};
+	};
+	class EngineState
+	{
+	protected:
+		int frames;
+	public:
+		GameEngine& engine;
+		virtual void init(GameEngine& engine){this->engine = engine;};
+		virtual void cleanup() = 0;
+		virtual void pause() = 0;
+		virtual void resume() = 0;
+		virtual void handleEvents() = 0;
+		virtual void update(double time,double deltatime) = 0;
+		virtual void draw() = 0;
+	};
+}
 	
-	static int l_main_handleEvents(lua_State* L);
-	static int l_main_update(lua_State* L);
-	static int l_main_draw(lua_State* L);
-
-	static int l_input_keyPressed(lua_State* L);
-	static int l_input_keyReleased(lua_State* L);
-	static int l_input_keyHeld(lua_State* L);
-
-	static int l_graphics_drawSprite(lua_State* L);
-	static int l_graphics_drawQuad(lua_State* L);
-
-	static int l_graphics_moveCameraTowards(lua_State* L);
-	static int l_graphics_moveCameraRelative(lua_State* L);
-
-	static int l_input_getMousePosition(lua_State* L);
-
-	void setKeyConstants();
-	
-};
-	
-	
-	
-	
-	
-	
+#include "closecode.h"
 	
 	
 	

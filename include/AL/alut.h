@@ -2,8 +2,8 @@
 #define AL_ALUT_H
 
 #if defined(_MSC_VER)
-#include "alc.h"
-#include "al.h"
+#include <AL/alc.h>
+#include <AL/al.h>
 #elif defined(__APPLE__)
 #include <OpenAL/alc.h>
 #include <OpenAL/al.h>
@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+#define ALUT_API
+/*
 #if defined(_WIN32) && !defined(_XBOX)
  #if defined (ALUT_BUILD_LIBRARY)
   #define ALUT_API __declspec(dllexport)
@@ -29,9 +31,10 @@ extern "C" {
   #define ALUT_API extern
  #endif
 #endif
+*/
 
 #if defined(_WIN32)
- #define ALUT_APIENTRY __cdecl
+ #define ALUT_APIENTRY
 #else
  #define ALUT_APIENTRY
 #endif

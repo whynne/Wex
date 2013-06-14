@@ -1,16 +1,18 @@
 #include "graphics.h"
 
 
-using namespace graphics;
-using graphics::Polygon;
+#define Polygon wex::graphics::Polygon
+
+using namespace wex::graphics;
+
+map<string,Texture*>       wex::graphics::textures;
+map<string,ShaderProgram>  wex::graphics::shaders;
 
 Renderer* Renderer::instance = NULL;
 
 GLubyte uncompressedtgaheader[12] = {0,0, 2,0,0,0,0,0,0,0,0,0};
 GLubyte compressedtgaheader[12]   = {0,0,10,0,0,0,0,0,0,0,0,0};
 
-map<string,graphics::Texture*>       graphics::textures;
-map<string,graphics::ShaderProgram>  graphics::shaders;
 
 SpriteSheet::SpriteSheet()
 {
@@ -69,9 +71,9 @@ TextureFont::TextureFont(char* filename,int height,int width)
 
 //graphics::Polygon function definitions
 
-void graphics::Polygon::addVertex(Vector2f vert)
+void Polygon::addVertex(Vector2f vert)
 {
-	verts.insert(vert);
+	verts.push_back(vert);
 }
 
 //Quad function definitions
@@ -234,311 +236,6 @@ void Sprite::rewind()
 	frame = 0;
 	accumulator = 0;
 }
-
-/////////////////////////////////
-// Lua bindings for Quad class
-/////////////////////////////////
-
-int graphics::l_Quad_constructor(lua_State *L)
-{
-	cout << "Creating Quad." << endl;
-	Quad ** udata = (Quad **)lua_newuserdata(L, sizeof(Quad *));
-	*udata = new Quad();
-	luaL_getmetatable(L, "luaL_Quad");
-	lua_setmetatable(L, -2);
-	return 1;
-}
-
-int graphics::l_Quad_destructor(lua_State *L)
-{
-	return 0;
-}
-
-int graphics::l_Quad_setColor(lua_State *L)
-{
-	Quad* quad = l_checkQuad(L,1);
-	quad->setColor(ColorRGBA(getArgNumber(2,L),getArgNumber(3,L),getArgNumber(4,L),getArgNumber(5,L)));
-	return 0;
-}
-
-int graphics::l_Quad_setWidth(lua_State *L)
-{
-	Quad* quad = l_checkQuad(L,1);
-	quad->setWidth(getArgNumber(2,L));
-	return 0;
-}
-
-int graphics::l_Quad_setHeight(lua_State *L)
-{
-	Quad* quad = l_checkQuad(L,1);
-	quad->setHeight(getArgNumber(2,L));
-	return 0;
-}
-
-Quad* graphics::l_checkQuad(lua_State *L, int n)
-{
-	return *(Quad **)luaL_checkudata(L, n, "luaL_Quad");
-}
-
-int graphics::l_Quad_getWidth(lua_State *L)
-{
-	cout << "GetWidth called" << endl;
-	Quad* sprite = l_checkQuad(L,1);
-	lua_pushnumber(L,sprite->getWidth());
-	return 1;
-}
-
-int graphics::l_Quad_getHeight(lua_State *L)
-{
-	cout << "GetHeight called" << endl;
-	Quad* quad = l_checkQuad(L,1);
-	lua_pushnumber(L,quad->getHeight());
-	return 1;
-}
-
-int graphics::l_Quad_getColor(lua_State *L)
-{
-	cout << "GetColor called" << endl;
-	Quad* quad = l_checkQuad(L,1);
-	lua_pushnumber(L,quad->getColor()._r);
-	lua_pushnumber(L,quad->getColor()._g);
-	lua_pushnumber(L,quad->getColor()._b);
-	lua_pushnumber(L,quad->getColor()._a);
-	return 4;
-}
-
-void graphics::registerQuad(lua_State *L)
-{
-	luaL_Reg sQuadRegs[] =
-	{
-		{ "new",              l_Quad_constructor},
-		{ "setWidth",         l_Quad_setWidth},
-		{ "setHeight",        l_Quad_setHeight},
-		{ "getWidth",         l_Quad_getWidth},
-		{ "getHeight",        l_Quad_getHeight},
-		{ "setColor",         l_Quad_setColor},
-		{ "getColor",         l_Quad_getColor},
-		{ "__gc",             l_Quad_destructor},
-		{NULL,NULL}
-	};
-	// Create a luaL metatable. This metatable is not
-	// exposed to Lua. The "luaL_Quad" label is used by luaL
-	// internally to identity things.
-
-	Lua lua = Lua(L);
-	lua.stackDump();
-
-	luaL_newmetatable(L, "luaL_Quad");
-	lua.stackDump();
-	luaL_setfuncs (L, sQuadRegs, 0);
-	lua.stackDump();
-	lua_pushvalue(L, -1);
-	lua.stackDump();
-	lua_setfield(L, -1, "__index");
-	lua.stackDump();
-	lua_setglobal(L, "Quad");
-	lua.stackDump();
-}
-
-/////////////////////////////////
-// Lua bindings for Sprite class
-/////////////////////////////////
-
-int graphics::l_Sprite_constructor(lua_State *L)
-{
-	cout << "Creating sprite." << endl;
-	Sprite ** udata = (Sprite **)lua_newuserdata(L, sizeof(Sprite *));
-	*udata = new Sprite();
-	luaL_getmetatable(L, "luaL_Sprite");
-	lua_setmetatable(L, -2);
-	return 1;
-}
-
-int graphics::l_Sprite_setWidth(lua_State *L)
-{
-	Sprite* sprite = l_checkSprite(L,1);
-	sprite->setWidth(getArgNumber(2,L));
-	return 0;
-}
-
-int graphics::l_Sprite_setHeight(lua_State *L)
-{
-	Sprite* sprite = l_checkSprite(L,1);
-	sprite->setHeight(getArgNumber(2,L));
-	return 0;
-}
-
-int graphics::l_Sprite_getWidth(lua_State *L)
-{
-	cout << "GetWidth called" << endl;
-	Sprite* sprite = l_checkSprite(L,1);
-	lua_pushnumber(L,sprite->getWidth());
-	return 1;
-}
-
-int graphics::l_Sprite_getHeight(lua_State *L)
-{
-	cout << "GetHeight called" << endl;
-	Sprite* sprite = l_checkSprite(L,1);
-	lua_pushnumber(L,sprite->getHeight());
-	return 1;
-}
-
-int graphics::l_Sprite_destructor(lua_State *L)
-{
-	return 0;
-}
-
-int graphics::l_Sprite_changeSequence(lua_State *L)
-{
-	Sprite* sprite = l_checkSprite(L,1);
-	sprite->changeSequence(getArgString(2,L));
-	return 0;
-}
-
-int graphics::l_Sprite_changeSpriteSheet(lua_State *L)
-{
-	Sprite* sprite = l_checkSprite(L,1);
-	sprite->changeSpriteSheet(l_checkSpriteSheet(L,2));
-	return 0;
-}
-
-int graphics::l_Sprite_play(lua_State *L)
-{
-	Sprite* sprite = l_checkSprite(L,1);
-	sprite->play(10);
-	return 0;
-}
-
-int graphics::l_Sprite_stop(lua_State *L)
-{
-	return 1;
-}
-
-int graphics::l_Sprite_rewind(lua_State *L)
-{
-	return 1;
-}
-
-Sprite* graphics::l_checkSprite(lua_State *L, int n)
-{
-	 return *(Sprite **)luaL_checkudata(L, n, "luaL_Sprite");
-}
-
-
-void graphics::registerSprite(lua_State *L)
-{
-	
-	luaL_Reg sSpriteRegs[] =
-	{
-		{ "new",              l_Sprite_constructor },
-		{ "setWidth",         l_Sprite_setWidth},
-		{ "setHeight",        l_Sprite_setHeight},
-		{ "getWidth",         l_Sprite_getWidth},
-		{ "getHeight",        l_Sprite_getHeight},
-		{ "setSpriteSheet",l_Sprite_changeSpriteSheet},
-		{ "setSequence",   l_Sprite_changeSequence},
-		{ "__gc",             l_Sprite_destructor},
-		{NULL,NULL}
-	};
-	// Create a luaL metatable. This metatable is not
-	// exposed to Lua. The "luaL_Sprite" label is used by luaL
-	// internally to identity things.
-
-	Lua lua = Lua(L);
-	lua.stackDump();
-
-	luaL_newmetatable(L, "luaL_Sprite");
-	lua.stackDump();
-	luaL_setfuncs (L, sSpriteRegs, 0);
-	lua.stackDump();
-	lua_pushvalue(L, -1);
-	lua.stackDump();
-	lua_setfield(L, -1, "__index");
-	lua.stackDump();
-	lua_setglobal(L, "Sprite");
-	lua.stackDump();
-}
-
-/////////////////////////////////
-// Lua bindings for SpriteSheet class
-/////////////////////////////////
-
-
-int graphics::l_SpriteSheet_constructor(lua_State *L)
-{
-	cout << "Creating sprite sheet." << endl;
-	SpriteSheet ** udata = (SpriteSheet **)lua_newuserdata(L, sizeof(SpriteSheet *));
-	*udata = new SpriteSheet();
-	luaL_getmetatable(L, "luaL_SpriteSheet");
-	lua_setmetatable(L, -2);
-	return 1;
-}
-
-int graphics::l_SpriteSheet_destructor(lua_State *L)
-{
-	return 1;
-}
-
-int graphics::l_SpriteSheet_loadImage(lua_State *L)
-{
-	SpriteSheet* sheet = l_checkSpriteSheet(L,1);
-	string filename = getArgString(2,L);
-	cout << "Loading image to spritesheet " << filename << " at address " << sheet << endl;  
-	sheet->loadUncompressedTGA((char*)filename.c_str());
-	return 0;
-}
-
-//Lua call addFrame(sequence,x,y,height,width)
-
-int graphics::l_SpriteSheet_addFrame(lua_State *L)
-{
-	SpriteSheet* sheet = l_checkSpriteSheet(L,1);
-	string sequence = getArgString(2,L);
-	Point2f topleft = Point2f(getArgNumber(3,L),getArgNumber(4,L));
-	int height = getArgNumber(5,L);
-	int width  = getArgNumber(6,L);
-
-	cout << "Adding frame to sequence " << sequence << " with height of " << height << " and width of " << width << endl;
-	sheet->addFrame(sequence,SpriteFrame(height,width,sheet,topleft));
-	return 1;
-}
-
-void graphics::registerSpriteSheet(lua_State *L)
-{
-	
-	luaL_Reg sSpriteSheetRegs[] =
-	{
-		{ "new",              l_SpriteSheet_constructor},
-		{ "addFrame",         l_SpriteSheet_addFrame},
-		{ "loadImage",        l_SpriteSheet_loadImage},
-		{ "__gc",             l_Sprite_destructor},
-		{NULL,NULL}
-	};
-	// Create a luaL metatable. This metatable is not
-	// exposed to Lua. The "luaL_Sprite" label is used by luaL
-	// internally to identity things.
-
-	Lua lua = Lua(L);
-	lua.stackDump();
-
-	luaL_newmetatable(L, "luaL_SpriteSheet");
-	lua.stackDump();
-	luaL_setfuncs (L, sSpriteSheetRegs, 0);
-	lua.stackDump();
-	lua_pushvalue(L, -1);
-	lua.stackDump();
-	lua_setfield(L, -1, "__index");
-	lua.stackDump();
-	lua_setglobal(L, "SpriteSheet");
-	lua.stackDump();
-}
-
-SpriteSheet* graphics::l_checkSpriteSheet(lua_State *L, int n)
-{
-	 return *(SpriteSheet **)luaL_checkudata(L, n, "luaL_SpriteSheet");
-}
-
 
 Point3f Sprite::getOffset()
 {
@@ -705,9 +402,9 @@ SpriteFrame Glyph::getGlyph()
 
 //graphics::Polygon batch definitions
 
-void graphics::PolygonBatch::addToBuffer(graphics::Polygon polygon, Point3d position,double xscale,double yscale,double rotate)
+void PolygonBatch::addToBuffer(Polygon polygon, Point3d position,double xscale,double yscale,double rotate)
 {
-	std::set<Point2f,y_compare>::iterator it = polygon.verts.begin();
+	std::list<Point2f>::iterator it = polygon.verts.begin();
 	for(int i = 0;it != polygon.verts.end();it++,i++)
 	{
 		//Initial points
@@ -737,21 +434,30 @@ void graphics::PolygonBatch::addToBuffer(graphics::Polygon polygon, Point3d posi
 	vertexbuffer[bufferpos].point = *it;
 
 }
-void graphics::PolygonBatch::addToBuffer(graphics::Polygon polygon, Point3d position)
+void PolygonBatch::addToBuffer(Polygon polygon, Point3d position)
 {
 }
-Vertex* graphics::PolygonBatch::getVertbuffer()
+Vertex* PolygonBatch::getVertbuffer()
+{
+	return this->vertexbuffer;
+}
+int PolygonBatch::getBufferLength()
+{
+	return this->bufferpos;
+}
+int PolygonBatch::remainingSpace()
+{
+	return BUFFER_SIZE-bufferpos;
+}
+void PolygonBatch::reset()
 {
 }
-int graphics::PolygonBatch::getBufferLength()
+
+PolygonBatch::PolygonBatch()
 {
+	bufferpos = 0;
 }
-bool graphics::PolygonBatch::isFull()
-{
-}
-void graphics::PolygonBatch::reset()
-{
-}
+
 
 //SpriteBatch definitions
 
@@ -1026,21 +732,21 @@ SpriteBatch::SpriteBatch()
 }
 
 
-const char* graphics::SAMPLER_NAME = "fs_Sampler0";
-const char* graphics::TFS_TEXCOORD = "fs_TexCoord";
-const char* graphics::TFS_COLOR    = "fs_Color";
+const char* wex::graphics::SAMPLER_NAME = "fs_Sampler0";
+const char* wex::graphics::TFS_TEXCOORD = "fs_TexCoord";
+const char* wex::graphics::TFS_COLOR    = "fs_Color";
 
-const char* graphics::TVS_PROJECTION_MAT = "vs_Projection";
-const char* graphics::TVS_MODEL_VIEW_MAT = "vs_ModelView";
+const char* wex::graphics::TVS_PROJECTION_MAT = "vs_Projection";
+const char* wex::graphics::TVS_MODEL_VIEW_MAT = "vs_ModelView";
 
-const int   graphics::VERTEX_ATTRIBUTE_ID = 2;
-const char* graphics::VERTEX_ATTRIBUTE_NAME = "vs_Vertex";
+const int   wex::graphics::VERTEX_ATTRIBUTE_ID = 2;
+const char* wex::graphics::VERTEX_ATTRIBUTE_NAME = "vs_Vertex";
 
-const int   graphics::TEXCOORD_ATTRIBUTE_ID = 1;
-const char* graphics::TEXCOORD_ATTRIBUTE_NAME = "vs_TexCoord";
+const int   wex::graphics::TEXCOORD_ATTRIBUTE_ID = 1;
+const char* wex::graphics::TEXCOORD_ATTRIBUTE_NAME = "vs_TexCoord";
 
-const int   graphics::COLOR_ATTRIBUTE_ID   = 0;
-const char* graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
+const int   wex::graphics::COLOR_ATTRIBUTE_ID   = 0;
+const char* wex::graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
 
 
 Shader::Shader(string filename,GLenum type) 
@@ -1188,7 +894,7 @@ void ShaderProgram::bindAttributes() {
 	}
 
 
-bool graphics::Init()
+bool wex::graphics::Init()
 {
 	 if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )					 // Initialize SDL
         return false;
@@ -1260,12 +966,12 @@ bool graphics::Init()
           cout << "OpenGL: Using shading language " << sVersion << endl;
        }
 	cout << "Glew: Successfully initialized." << endl;
-	graphics::loadAssets();
+	loadAssets();
 	}
 	return true;
 }
 
-void graphics::loadAssets()
+void wex::graphics::loadAssets()
 {
 
   SpriteSheet uispritesheet;
@@ -1297,12 +1003,11 @@ void graphics::loadAssets()
   Texture* blanktex = new Texture();
   blanktex->createEmptyTexture(2,2);
 
-  graphics::textures["blank"] = blanktex;
-  graphics::textures["ui"] = new SpriteSheet(uispritesheet);
-  graphics::textures["uifont"] = new TextureFont("uifont.tga",192,128);
+  textures["blank"] = blanktex;
+  textures["ui"] = new SpriteSheet(uispritesheet);
+  textures["uifont"] = new TextureFont("uifont.tga",192,128);
 
   cout << "Assets successfully loaded" << endl;
-
 }
 
 
@@ -1469,6 +1174,8 @@ void Renderer::drawBuffer()
 			glBindBuffer( GL_ARRAY_BUFFER, vbovertex);
 			glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
 			glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
+			glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*polybatch.getBufferLength(),polybatch.getVertbuffer(),GL_STREAM_DRAW);
+			glDrawArrays(GL_TRIANGLE_STRIP,0,polybatch.getBufferLength());
 		}
 		else if(rendermode == WEX_VERTEX_ARRAYS)
 		{

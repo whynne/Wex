@@ -1,9 +1,14 @@
 #include "ui.h"
 
 
+using wex::Vec3;
+using wex::Vec2;
 
 typedef std::deque<string>::iterator StringDequeIt;
 typedef std::vector<LogLine>::iterator LogLineIt;
+
+using wex::graphics::ColorRGBA;
+using wex::graphics::Sprite;
 
 void Console::setSpacing(float x)
 {
@@ -32,7 +37,7 @@ void Console::setColumns(int columns)
 
 void Console::setFont(std::string name)
 {
-	this->font = (TextureFont*)graphics::textures[name];
+	this->font = (TextureFont*)textures[name];
 }
 
 void Console::print(std::string text)

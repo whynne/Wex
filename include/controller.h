@@ -1,5 +1,7 @@
 #pragma once
 
+#include "begincode.h"
+
 #include <sstream>
 #include <string>
 #include <iostream>
@@ -7,7 +9,7 @@
 #include "SDL/SDL.h"
 #include "vec.h"
 
-
+using wex::Point2i;
 
 enum Keystates
 {
@@ -24,7 +26,7 @@ struct Keydata
 };
 
 
-class Controller
+class WEXAPI Controller
 {
 private:
 	Point2i _prevmousepos;
@@ -61,3 +63,5 @@ public:
 	std::string getCapturedText();
 	Controller();
 };
+
+#include "closecode.h"

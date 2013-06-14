@@ -1,11 +1,15 @@
 #pragma once
+
+#include "begincode.h"
+
 #include "vec.h"
-#include "luainterface.h"
+
+using wex::Point3d;
 
 namespace physics
 {
 
-	struct State
+	struct  WEXAPI State
 	{
 		Point3d p; // position
 		Point3d v; // velocity
@@ -13,7 +17,7 @@ namespace physics
 		double m;
 	};
 	
-	struct Derivative
+	struct WEXAPI Derivative
 	{ 
 		Point3d dx; // derivative of position: velocity
 		Point3d dv; // derivative of velocity: acceleration
@@ -21,7 +25,7 @@ namespace physics
 	
 	State interpolate(const State &previous, const State &current, float alpha);
 	
-	class PhysState
+	class WEXAPI PhysState
 	{
 	public:
 		State state,prevstate;
@@ -37,13 +41,6 @@ namespace physics
 		PhysState();
 		PhysState(double p, double v);
 	};
-	
-	//Quad lua bindings
-	
-	int l_PhysState_constructor(lua_State *L);
-	int l_PhysState_destructor(lua_State *L);
-	int l_PhysState_applyForce(lua_State *L);
-	int l_PhysState_integrate(lua_State *L);
-	PhysState* l_checkPhysState(lua_State *L, int n);
-	void registerPhysState(lua_State *L);
 }
+
+#include "closecode.h"

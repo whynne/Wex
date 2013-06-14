@@ -1,5 +1,8 @@
 #ifndef H_VEC
 #define H_VEC
+
+#include "begincode.h"
+
 #include "triglookup.h"
 #include <math.h>
 
@@ -7,8 +10,10 @@ const double pi = atan(1.0)*4;
 
 // Vector
 
+namespace wex
+{
 template <class T>
-class Vec2
+class WEXAPI Vec2
 {
 public:
 	T x;
@@ -111,7 +116,7 @@ public:
 
 
 template <class T>
-class Vec3
+class WEXAPI Vec3
 {
 public:
 	T x;
@@ -263,5 +268,8 @@ typedef Vec3<float>  Vertex3f;
 typedef Vec2<int>    Vertex2i;
 typedef Vec2<double> Vertex2d;
 typedef Vec2<float>  Vertex2f;
+
+}
+#include "closecode.h"
 
 #endif

@@ -1,8 +1,8 @@
 
 
-#ifndef H_AUDIO
-#define H_AUDIO
+#pragma once
 
+#include "begincode.h"
 
 #include "vec.h"
 #include "AL/al.h"
@@ -15,38 +15,40 @@
 
 #define AUDIO_BUFFER_SIZE   32768     // 32 KB buffers
 
-namespace audio
+namespace wex
 {
-	void init();
-	class AudioBuffer;
-	class Source;
-
-	class Source
+	namespace audio
 	{
-		ALuint id;
-	public:
-		Source();
-		void   setPosition(Point3f position);
-		void   attachBuffer(AudioBuffer buffer);
-		ALuint getId();
-		void   play();
-	};
+		void init();
+		class AudioBuffer;
+		class Source;
 	
-	class AudioBuffer
-	{
-	    ALuint id;
-		ALenum format;
-		ALsizei freq;
-
-	public:
-		AudioBuffer();
-		ALuint getId();
-		void   loadVorbisFile(std::string name);
-	};
-
-	extern std::map<std::string,AudioBuffer> audiobuffers;
-
+		class WEXAPI Source
+		{
+			ALuint id;
+		public:
+			Source();
+			void   setPosition(Point3f position);
+			void   attachBuffer(AudioBuffer buffer);
+			ALuint getId();
+			void   play();
+		};
+		
+		class WEXAPI AudioBuffer
+		{
+		    ALuint id;
+			ALenum format;
+			ALsizei freq;
+	
+		public:
+			AudioBuffer();
+			ALuint getId();
+			void   loadVorbisFile(std::string name);
+		};
+	
+		extern WEXAPI std::map<std::string,AudioBuffer> audiobuffers;
+	
+	}
 }
 
-
-#endif
+#include "closecode.h"

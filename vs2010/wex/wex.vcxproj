@@ -22,7 +22,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
@@ -47,6 +47,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\include;$(IncludePath)</IncludePath>
     <LibraryPath>..\..\lib;$(LibraryPath)</LibraryPath>
+    <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -70,16 +71,18 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WEX_EXPORT;NDEBUG;GLEW_STATIC;AL_LIBTYPE_STATIC;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua52.lib;SDL.lib;SDLmain.lib;opengl32.lib;glew32.lib;OpenALSoft32.lib;alut.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL.lib;SDLmain.lib;glew32.lib;opengl32.lib;openal32.lib;alut.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -89,8 +92,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\engine.cpp" />
     <ClCompile Include="..\..\src\graphics.cpp" />
-    <ClCompile Include="..\..\src\luainterface.cpp" />
-    <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\matrix.cpp" />
     <ClCompile Include="..\..\src\net.cpp" />
     <ClCompile Include="..\..\src\physics.cpp" />
@@ -100,8 +101,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\audio.h" />
+    <ClInclude Include="..\..\include\begincode.h" />
+    <ClInclude Include="..\..\include\closecode.h" />
     <ClInclude Include="..\..\include\geometry.h" />
-    <ClInclude Include="..\..\include\luainterface.h" />
     <ClInclude Include="..\..\include\ui.h" />
     <ClInclude Include="..\..\include\controller.h" />
     <ClInclude Include="..\..\include\engine.h" />
@@ -113,6 +115,7 @@
     <ClInclude Include="..\..\include\timer.h" />
     <ClInclude Include="..\..\include\triglookup.h" />
     <ClInclude Include="..\..\include\vec.h" />
+    <ClInclude Include="..\..\include\wex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

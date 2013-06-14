@@ -8,8 +8,12 @@
 #include "graphics.h"
 #include "vec.h"
 
+
+using wex::Point3f;
+using wex::Point2f;
+
 using namespace std;
-using namespace graphics;
+using namespace wex::graphics;
 
 void drawWindow(Point3f pos,float height,float width);
 
