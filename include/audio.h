@@ -22,7 +22,12 @@ namespace wex
 		void init();
 		class AudioBuffer;
 		class Source;
-	
+
+		class SoundManager
+		{
+
+		};
+
 		class WEXAPI Source
 		{
 			ALuint id;
@@ -47,7 +52,6 @@ namespace wex
 		};
 	
 		extern WEXAPI std::map<std::string,AudioBuffer> audiobuffers;
-	
 	}
 }
 

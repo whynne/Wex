@@ -13,4 +13,7 @@
 #include "geometry.h"
 #include "controller.h"
 
+void displayDebugInfo();
+void setWindowLabel();
+
 #endif

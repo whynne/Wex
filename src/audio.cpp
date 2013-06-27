@@ -19,7 +19,12 @@ void audio::init()
 
 AudioBuffer::AudioBuffer()
 {
+	int error;
 	alGenBuffers(1,&id);
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+		printf("alGenBuffers failed: %d", error);
+	}
 }
 
 ALuint AudioBuffer::getId()
@@ -86,12 +91,22 @@ ALuint Source::getId()
 Source::Source()
 {
 	alGenSources(1, &id);
+	int error;
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+		printf("alGenSources failed: %d", error);
+	}
     alSource3f(id, AL_POSITION, 0.0f, 0.0f, 0.0f);
 }
 
 void Source::play()
 {
 	alSourcePlay(id);
+}
+
+void Source::pause()
+{
+	alSourcePause(id);
 }
 
 
