@@ -13,7 +13,7 @@ const double pi = atan(1.0)*4;
 namespace wex
 {
 template <class T>
-class WEXAPI Vec2
+class Vec2
 {
 public:
 	T x;
@@ -116,7 +116,7 @@ public:
 
 
 template <class T>
-class WEXAPI Vec3
+class Vec3
 {
 public:
 	T x;

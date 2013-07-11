@@ -12,6 +12,9 @@
 #include "matrix.h"
 #include "geometry.h"
 #include "controller.h"
+#include "SDL\SDL.h"
+
+#undef main
 
 void displayDebugInfo();
 void setWindowLabel();

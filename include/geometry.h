@@ -10,7 +10,7 @@ namespace wex
 	{
 	
 		template<typename T>
-		std::set<Vec2<T>> WEXAPI convexHull2D(std::set<Vec2<T>> points)
+		std::set<Vec2<T>> convexHull2D(std::set<Vec2<T>> points)
 		{
 			std::set<Vec2<T>> resultset;
 			std::set<Vec2<T>>::iterator it = points.begin();

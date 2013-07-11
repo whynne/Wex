@@ -49,8 +49,6 @@ namespace wex
 	    Timer fps;
 	    
 		static Controller controller;
-		static audio::Source source;
-		static audio::AudioBuffer buffer;
 
 		vector<EngineState*> states;
 	
@@ -72,11 +70,13 @@ namespace wex
 	protected:
 		int frames;
 	public:
-		GameEngine& engine;
-		virtual void init(GameEngine& engine){this->engine = engine;};
+		GameEngine* engine;
+		void setEngine(GameEngine* engine);
+		virtual void begin() = 0;
 		virtual void cleanup() = 0;
 		virtual void pause() = 0;
 		virtual void resume() = 0;
+		virtual void end() = 0;
 		virtual void handleEvents() = 0;
 		virtual void update(double time,double deltatime) = 0;
 		virtual void draw() = 0;

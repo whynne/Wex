@@ -38,8 +38,7 @@ bool GameEngine::init()
 	glClearColor(0,0,0,1);
 
 	//OpenAL init
-	//audio::init();
-	//source = audio::Source::Source();
+	audio::init();
 
     return true;
 }
@@ -165,10 +164,17 @@ bool GameEngine::isRunning()
 
 void GameEngine::pushState(EngineState* state)
 {
+	state->setEngine(this);
 	states.push_back(state);
 }
 
 void GameEngine::popState()
 {
 	states.pop_back();
+}
+
+
+void EngineState::setEngine(GameEngine* engine)
+{
+	this->engine = engine;
 }
