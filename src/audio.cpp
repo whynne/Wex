@@ -12,6 +12,7 @@ SoundManager* SoundManager::instance;
 
 void SoundManager::loadSound(string filename)
 {
+	cout << "attempting to load" << filename << endl;
 	AudioBuffer newsound;
 	newsound.loadVorbisFile(filename);
 	audiobuffers[filename] = newsound;  

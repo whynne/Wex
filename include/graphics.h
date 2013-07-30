@@ -30,7 +30,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
+#include <map>C
 #include <list>
 #include <assert.h>
 #include <fstream>
@@ -77,7 +77,7 @@ namespace wex
 	    bool Init();
 	
 		extern map<string,Texture*>       textures;
-	    extern map<string,ShaderProgram>  shaders;
+	    extern map<string,ShaderProgram*>  shaders;
 	
 	
 	    enum imageformat
@@ -384,9 +384,6 @@ namespace wex
 	        GLuint           vbovertex;
 	        GLuint           vbotexture;
 	        GLuint           vbocolor;
-			ShaderProgram    *defaultshader;
-	
-			
 	
 	    public:
 	        static  Renderer* Instance();
@@ -411,6 +408,9 @@ namespace wex
 			void    drawBuffer();
 	    };
 	
+		void WEXAPI printShaderList();
+		void WEXAPI printTextureList();
+
 		void WEXAPI loadAssets();
 	}
 }

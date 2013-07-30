@@ -73,7 +73,6 @@ namespace wex
 		GameEngine* engine;
 		void setEngine(GameEngine* engine);
 		virtual void begin() = 0;
-		virtual void cleanup() = 0;
 		virtual void pause() = 0;
 		virtual void resume() = 0;
 		virtual void end() = 0;

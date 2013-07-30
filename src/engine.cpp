@@ -6,7 +6,7 @@
 
 using namespace wex;
 
-Controller         GameEngine::controller;
+Controller wex::GameEngine::controller;
 
 GameEngine::GameEngine()
 {
@@ -35,7 +35,7 @@ bool GameEngine::init()
 		return false;
 	}
 	cout << "Graphics successfully initialized!" << endl;
-	glClearColor(0,0,0,1);
+	glClearColor(0,1,0,1);
 
 	//OpenAL init
 	audio::init();
@@ -165,6 +165,7 @@ bool GameEngine::isRunning()
 void GameEngine::pushState(EngineState* state)
 {
 	state->setEngine(this);
+	state->begin();
 	states.push_back(state);
 }
 

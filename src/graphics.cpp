@@ -6,7 +6,7 @@
 using namespace wex::graphics;
 
 map<string,Texture*>       wex::graphics::textures;
-map<string,ShaderProgram>  wex::graphics::shaders;
+map<string,ShaderProgram*>  wex::graphics::shaders;
 
 Renderer* Renderer::instance = NULL;
 
@@ -844,7 +844,7 @@ void ShaderProgram::enable(bool state) {
 		if (state) {
 			glEnable(GL_TEXTURE_2D);
 			//Sets the active texture unit, commented out since we don't need to mess with texture units
-			//glActiveTexture(GL_TEXTURE0);
+			glActiveTexture(GL_TEXTURE0);
 			//
 			glBindTexture(GL_TEXTURE_2D, tex_handle);
 			glUseProgram(handle);
@@ -966,48 +966,36 @@ bool wex::graphics::Init()
           cout << "OpenGL: Using shading language " << sVersion << endl;
        }
 	cout << "Glew: Successfully initialized." << endl;
-	loadAssets();
 	}
+	loadAssets();
 	return true;
 }
 
 void wex::graphics::loadAssets()
 {
-
-  SpriteSheet uispritesheet;
-
-  SpriteFrame tempframe;
-  uispritesheet.loadUncompressedTGA("uisprites.tga");
-
-  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,10));
-  uispritesheet.addFrame("horizontal border",tempframe);
-  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(5,10));
-  uispritesheet.addFrame("vertical border",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,0));
-  uispritesheet.addFrame("constitution icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,0));
-  uispritesheet.addFrame("speed icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(48,16));
-  uispritesheet.addFrame("intelligence icon",tempframe);
-  tempframe = SpriteFrame(16,16,&uispritesheet,Point2f(32,16));
-  uispritesheet.addFrame("strength icon",tempframe);
-  tempframe = SpriteFrame(4,4,&uispritesheet,Point2f(0,0));
-  uispritesheet.addFrame("top left corner",tempframe);
-  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,0));
-  uispritesheet.addFrame("top right corner",tempframe);
-  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(5,5));
-  uispritesheet.addFrame("bottom right corner",tempframe);
-  tempframe = SpriteFrame(4.0,4.0,&uispritesheet,Point2f(0,5));
-  uispritesheet.addFrame("bottom left corner",tempframe);
-
   Texture* blanktex = new Texture();
   blanktex->createEmptyTexture(2,2);
 
   textures["blank"] = blanktex;
-  textures["ui"] = new SpriteSheet(uispritesheet);
-  textures["uifont"] = new TextureFont("uifont.tga",192,128);
+  //be sure to include this file if you want a default texture font to use
+  textures["default font"] = new TextureFont("uifont.tga",192,128);
+}
 
-  cout << "Assets successfully loaded" << endl;
+void wex::graphics::printShaderList()
+{
+	map<string,ShaderProgram*>::iterator it;
+	cout << "SHADER LIST:" << endl;
+	for(it = shaders.begin();it!=shaders.end();it++)
+		cout << '\"' << it->first << "\" Shader ID: " << it->second->getHandle() << endl;
+
+}
+
+void wex::graphics::printTextureList()
+{
+	map<string,Texture*>::iterator it;
+	cout << "TEXTURE LIST:" << endl;
+	for(it = textures.begin();it!=textures.end();it++)
+		cout << '\"' << it->first << "\" Texture ID: " << it->second->getTexId() << " Height: " << it->second->getHeight() << " Width: " << it->second->getWidth() << endl;
 }
 
 
@@ -1023,16 +1011,16 @@ void Renderer::setRenderMode(RenderMode mode)
 		glGenBuffers( 1, &vbotexture);
 		glGenBuffers( 1, &vbocolor);
 
-		defaultshader = new ShaderProgram("regular.vert","regular.frag");
+		shaders["default"] = new ShaderProgram("regular.vert","regular.frag");
 		cout << "Setting output size" << endl;
-		defaultshader->setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
+		shaders["default"]->setOutputSize(SCREEN_WIDTH,SCREEN_HEIGHT);
 		cout << "Enabling shader" << endl;
-		defaultshader->enable(true);
+		shaders["default"]->enable(true);
 	    cout << "Getting attribute locations" << endl;
 		
-		int vertexattriboffset = glGetAttribLocation(defaultshader->getHandle(),VERTEX_ATTRIBUTE_NAME);
-		int texcoordattriboffset = glGetAttribLocation(defaultshader->getHandle(),TEXCOORD_ATTRIBUTE_NAME);;
-		int colorattriboffset = glGetAttribLocation(defaultshader->getHandle(),COLOR_ATTRIBUTE_NAME);;
+		int vertexattriboffset = glGetAttribLocation(shaders["default"]->getHandle(),VERTEX_ATTRIBUTE_NAME);
+		int texcoordattriboffset = glGetAttribLocation(shaders["default"]->getHandle(),TEXCOORD_ATTRIBUTE_NAME);;
+		int colorattriboffset = glGetAttribLocation(shaders["default"]->getHandle(),COLOR_ATTRIBUTE_NAME);;
 
 		cout << "Enabling attribute Arrays" << endl;
 		
@@ -1075,12 +1063,12 @@ void Renderer::setRenderMode(RenderMode mode)
 
 void Renderer::setDefaultRendering(bool state)
 {
-	defaultshader->enable(state);
+	shaders["default"]->enable(state);
 }
 
 void Renderer::zoom(float factor)
 {
-	defaultshader->zoom(factor);
+	shaders["default"]->zoom(factor);
 }
 
 bool Renderer::changeTexHandle(int handle)
@@ -1174,8 +1162,8 @@ void Renderer::drawBuffer()
 			glBindBuffer( GL_ARRAY_BUFFER, vbovertex);
 			glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*spritebatch.getBufferLength(),spritebatch.getVertbuffer(),GL_STREAM_DRAW);
 			glDrawArrays(GL_QUADS,0,spritebatch.getBufferLength());
-			glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*polybatch.getBufferLength(),polybatch.getVertbuffer(),GL_STREAM_DRAW);
-			glDrawArrays(GL_TRIANGLE_STRIP,0,polybatch.getBufferLength());
+			//glBufferData( GL_ARRAY_BUFFER,sizeof(Vertex)*polybatch.getBufferLength(),polybatch.getVertbuffer(),GL_STREAM_DRAW);
+			//glDrawArrays(GL_TRIANGLE_STRIP,0,polybatch.getBufferLength());
 		}
 		else if(rendermode == WEX_VERTEX_ARRAYS)
 		{
@@ -1204,10 +1192,11 @@ void Renderer::drawText(std::string fontname,std::string text,Point3f position,C
 	character.setColor(color);
 	character.setFont(font);
 
-	for(float i = 0; i < text.size(); i+=1.0)
+	for(int i = 0; i < text.size()-1; i++)
 	{
+		cout << i << endl;
 		character.setGlyph(text[i]);
-        drawFixedGlyph(character,Point3f(position.x+((float)i*space),position.y,0));
+        drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0));
 	}
 }
 
@@ -1244,6 +1233,11 @@ void Renderer::moveCameraTowards(Point3f position)
 void Renderer::changeTexture(int texhandle)
 {
 	glBindTexture(GL_TEXTURE_2D,texhandle);
+}
+
+void Renderer::changeShader(string name)
+{
+	glUseProgram(shaders[name]->getHandle());
 }
 
 void Renderer::changeTexture(std::string name)
