@@ -209,7 +209,7 @@ namespace wex
 		  void setHeight(int height);
 	      void changeSequence(string sequence);
 	      void changeSpriteSheet(SpriteSheet* newsheet);
-		  void changeSpriteSheet(std::string name);
+		  void changeSpriteSheet(char* name);
 	      void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
 	    };
 	
@@ -297,9 +297,9 @@ namespace wex
 	        GLchar* source;
 	        unsigned int handle;
 	    public:
-	        void loadFromFile(std::string filename,GLenum type);
+	        void loadFromFile(char* filename,GLenum type);
 	        Shader();
-	        Shader(string filename,GLenum type);
+	        Shader(char* filename,GLenum type);
 	        ~Shader();
 	        inline unsigned int GetHandle() const;
 	    };
@@ -332,7 +332,7 @@ namespace wex
 	        unsigned int shader_mat_proj_handle;
 	        unsigned int shader_mat_mv_handle;
 	    public:
-	        ShaderProgram(std::string vsfilename,std::string fsfilename);
+	        ShaderProgram(char* vsfilename,char* fsfilename);
 	        ShaderProgram();
 	        ~ShaderProgram();
 	        void enable(bool state);
@@ -400,11 +400,11 @@ namespace wex
 	        void    drawFixedGlyph(Glyph glyph,Point3f position);
 			void    drawQuad(Quad quad,Point3f position,double xscale,double yscale,double rotate);
 			void    changeTexture(int texhandle);
-			void    changeTexture(std::string name);
-			void    changeShader(std::string name);
+			void    changeTexture(char* name);
+			void    changeShader(char* name);
 	
-	        void    drawText(std::string fontname,std::string text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
-	        void    drawFormattedText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space,int linelength);
+	        void    drawText(char* fontname,const char* text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
+	        void    drawFormattedText(char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength);
 			void    drawBuffer();
 	    };
 	

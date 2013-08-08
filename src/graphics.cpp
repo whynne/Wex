@@ -205,7 +205,7 @@ void Sprite::setHeight(int height)
 	this->bottomleft.y = height;
 }
 
-void Sprite::changeSpriteSheet(std::string name)
+void Sprite::changeSpriteSheet(char* name)
 {
 	targetspritesheet = (SpriteSheet*)graphics::textures[name];
 	accumulator = 0;
@@ -749,7 +749,7 @@ const int   wex::graphics::COLOR_ATTRIBUTE_ID   = 0;
 const char* wex::graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
 
 
-Shader::Shader(string filename,GLenum type) 
+Shader::Shader(char* filename,GLenum type) 
 	{
 		this->loadFromFile(filename,type);
 	}
@@ -759,7 +759,7 @@ Shader::Shader()
 
 	}
 
-void Shader::loadFromFile(std::string filename,GLenum type)
+void Shader::loadFromFile(char* filename,GLenum type)
 	{
 		std::ifstream file;
 		unsigned int sourcelength;
@@ -768,7 +768,7 @@ void Shader::loadFromFile(std::string filename,GLenum type)
 		GLint compiled;
 	
 		//Open vertex file, read into a string
-		file.open(filename.c_str(),ios::binary|ios_base::ate);
+		file.open(filename,ios::binary|ios_base::ate);
 		sourcelength = file.tellg();
 		source = new GLchar[sourcelength+1];
 		file.seekg(ios::beg);
@@ -817,7 +817,7 @@ ShaderProgram::ShaderProgram()
 	{
 	}
 
-ShaderProgram::ShaderProgram(std::string vsfilename,std::string fsfilename) {
+ShaderProgram::ShaderProgram(char* vsfilename,char* fsfilename) {
 		GLint linked = 100;
 		vs = new Shader(vsfilename,GL_VERTEX_SHADER);
 		fs = new Shader(fsfilename,GL_FRAGMENT_SHADER);
@@ -1184,23 +1184,26 @@ void Renderer::drawBuffer()
 	
 }
 
-void Renderer::drawText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space)
+void Renderer::drawText(char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space)
 {
+	
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
 	
 	Glyph character(font->getCharHeight(),font->getCharWidth());
 	character.setColor(color);
 	character.setFont(font);
 
-	for(int i = 0; i < text.size()-1; i++)
+	
+	for(int i = 0; i < strlen(text); i++)
 	{
-		cout << i << endl;
+		cout << text[i] << endl;
 		character.setGlyph(text[i]);
         drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0));
 	}
+	
 }
 
-void Renderer::drawFormattedText(std::string fontname,std::string text,Point3f position,ColorRGBA color, GLfloat space,int linelength)
+void Renderer::drawFormattedText(char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength)
 {
 	//Determine how much of the text we can render properly on one line.
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
@@ -1209,10 +1212,10 @@ void Renderer::drawFormattedText(std::string fontname,std::string text,Point3f p
 	character.setColor(color);
 	character.setFont(font);
 	
-	for(float i = 0; i < text.size(); i+=1.0)
+	for(int i = 0; i < strlen(text); i+=1.0)
 	{
 		character.setGlyph(text[i]);
-        drawFixedGlyph(character,Point3f(position.x+((float)i*space),position.y,0));
+        drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0));
 	}
 	
 }
@@ -1235,12 +1238,12 @@ void Renderer::changeTexture(int texhandle)
 	glBindTexture(GL_TEXTURE_2D,texhandle);
 }
 
-void Renderer::changeShader(string name)
+void Renderer::changeShader(char* name)
 {
 	glUseProgram(shaders[name]->getHandle());
 }
 
-void Renderer::changeTexture(std::string name)
+void Renderer::changeTexture(char* name)
 {
 	glBindTexture(GL_TEXTURE_2D,textures[name]->getTexId());
 }
