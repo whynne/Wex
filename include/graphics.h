@@ -118,7 +118,7 @@ namespace wex
 	        GLuint getWidth();
 	        GLuint getTexId();
 	        void createEmptyTexture(int height,int width);
-	        bool loadUncompressedTGA(char *filename);
+	        bool loadUncompressedTGA(const char *filename);
 	        Texture();
 	
 	    };
@@ -209,7 +209,7 @@ namespace wex
 		  void setHeight(int height);
 	      void changeSequence(string sequence);
 	      void changeSpriteSheet(SpriteSheet* newsheet);
-		  void changeSpriteSheet(char* name);
+		  void changeSpriteSheet(const char* name);
 	      void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
 	    };
 	
@@ -223,7 +223,7 @@ namespace wex
 			SpriteFrame getFrame(int framenum);
 	        void buildFont(Texture& texture);      // generates font
 	        TextureFont();                          // default constructor
-	        TextureFont(char *filename,int height,int width);          // generates font on construction
+	        TextureFont(const char *filename,int height,int width);          // generates font on construction
 			int getCharHeight(){return charheight;};
 			int getCharWidth(){return charwidth;};
 	    };
@@ -400,11 +400,11 @@ namespace wex
 	        void    drawFixedGlyph(Glyph glyph,Point3f position);
 			void    drawQuad(Quad quad,Point3f position,double xscale,double yscale,double rotate);
 			void    changeTexture(int texhandle);
-			void    changeTexture(char* name);
-			void    changeShader(char* name);
+			void    changeTexture(const char* name);
+			void    changeShader(const char* name);
 	
-	        void    drawText(char* fontname,const char* text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
-	        void    drawFormattedText(char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength);
+	        void    drawText(const char* fontname,const char* text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
+	        void    drawFormattedText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength);
 			void    drawBuffer();
 	    };
 	

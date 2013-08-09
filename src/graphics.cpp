@@ -43,7 +43,7 @@ SpriteFrame TextureFont::getFrame(int framenum)
 	return glyphs[framenum];
 }
 
-TextureFont::TextureFont(char* filename,int height,int width)
+TextureFont::TextureFont(const char* filename,int height,int width)
 {
 	this->loadUncompressedTGA(filename);
 	int i = 0;
@@ -205,7 +205,7 @@ void Sprite::setHeight(int height)
 	this->bottomleft.y = height;
 }
 
-void Sprite::changeSpriteSheet(char* name)
+void Sprite::changeSpriteSheet(const char* name)
 {
 	targetspritesheet = (SpriteSheet*)graphics::textures[name];
 	accumulator = 0;
@@ -258,7 +258,7 @@ SpriteSheet* Sprite::getSpriteSheet()
 }
 
 
-bool Texture::loadUncompressedTGA(char *filename)
+bool Texture::loadUncompressedTGA(const char *filename)
 {
 	//Headers for the tga texture
 	GLubyte header[12];
@@ -1184,7 +1184,7 @@ void Renderer::drawBuffer()
 	
 }
 
-void Renderer::drawText(char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space)
+void Renderer::drawText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space)
 {
 	
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
@@ -1203,7 +1203,7 @@ void Renderer::drawText(char* fontname,const char* text,Point3f position,ColorRG
 	
 }
 
-void Renderer::drawFormattedText(char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength)
+void Renderer::drawFormattedText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength)
 {
 	//Determine how much of the text we can render properly on one line.
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
@@ -1238,12 +1238,12 @@ void Renderer::changeTexture(int texhandle)
 	glBindTexture(GL_TEXTURE_2D,texhandle);
 }
 
-void Renderer::changeShader(char* name)
+void Renderer::changeShader(const char* name)
 {
 	glUseProgram(shaders[name]->getHandle());
 }
 
-void Renderer::changeTexture(char* name)
+void Renderer::changeTexture(const char* name)
 {
 	glBindTexture(GL_TEXTURE_2D,textures[name]->getTexId());
 }

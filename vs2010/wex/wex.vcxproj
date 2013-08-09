@@ -188,6 +188,7 @@
     <ClCompile Include="..\..\src\timer.cpp" />
     <ClCompile Include="..\..\src\triglookup.cpp" />
     <ClCompile Include="..\..\src\ui.cpp" />
+    <ClCompile Include="..\..\src\wex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\audio.h" />
