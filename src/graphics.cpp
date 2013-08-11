@@ -277,7 +277,10 @@ bool Texture::loadUncompressedTGA(const char *filename)
 	ifstream texturestream;
 	texturestream.open(filename,ios::binary);
 	if(!texturestream.good())
-		cout << "Warning: Failed to open texture " << filename << endl;
+	{
+		cout << "Error: Failed to open texture " << filename << endl;
+		return false;
+	}
 	texturestream.read((char*)header,sizeof(header));
 
 	texturestream.read((char*)header2, sizeof(header2));				//read 6 bytes into the file to get important information
@@ -1196,7 +1199,6 @@ void Renderer::drawText(const char* fontname,const char* text,Point3f position,C
 	
 	for(int i = 0; i < strlen(text); i++)
 	{
-		cout << text[i] << endl;
 		character.setGlyph(text[i]);
         drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0));
 	}

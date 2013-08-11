@@ -25,7 +25,7 @@ namespace wex
 	class GameEngine;
 	class EngineState;
 
-	class WEXAPI GameEngine
+	class GameEngine
 	{
 	public:
 		int ups;
@@ -43,18 +43,17 @@ namespace wex
 		double eventtime;
 		double currenttime;
 	private:
-	
+	    static GameEngine* instance;
 		bool running;
 	    SDL_Event event;
 	    Timer fps;
-	    
 		static Controller controller;
-
 		vector<EngineState*> states;
-	
+	    GameEngine();
+        GameEngine&  operator=(GameEngine const&){return *this;};
+
 	public:
-		GameEngine();
-	
+		static GameEngine* Instance();
 		void run();
 		bool isRunning();
 		bool init();

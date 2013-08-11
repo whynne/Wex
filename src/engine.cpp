@@ -6,6 +6,8 @@
 
 using namespace wex;
 
+GameEngine* GameEngine::instance;
+
 Controller wex::GameEngine::controller;
 
 GameEngine::GameEngine()
@@ -117,6 +119,9 @@ void GameEngine::run()
 	frametimer.start();
 	while(this->isRunning())
 	{
+		if(states.back()==0)
+			return; // We have no state to run.  Return prematurely.
+
 		if(counter.getTimeInSeconds() > 1.0)
 		{
 			counter.start();
@@ -172,6 +177,13 @@ void GameEngine::pushState(EngineState* state)
 void GameEngine::popState()
 {
 	states.pop_back();
+}
+
+GameEngine* GameEngine::Instance()
+{
+	if(!GameEngine::instance)
+		instance = new GameEngine();
+	return instance;
 }
 
 

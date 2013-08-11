@@ -254,7 +254,7 @@ namespace wex
 			ColorRGBA color;
 		};
 	
-		class WEXAPI PolygonBatch
+		class PolygonBatch
 		{
 		private:
 			vector<Polygon> polygons;
@@ -270,7 +270,7 @@ namespace wex
 			PolygonBatch();
 		};
 	
-	    class WEXAPI SpriteBatch
+	    class SpriteBatch
 	    {
 	    private:
 			vector<Sprite> sprites;
@@ -366,7 +366,7 @@ namespace wex
 			WEX_VERTEX_ARRAYS
 		};
 	
-	    class WEXAPI Renderer
+	    class Renderer
 	    {
 	    private:
 			int currenttex;

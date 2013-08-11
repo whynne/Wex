@@ -146,7 +146,7 @@
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)Release\wex.dll" "$(SolutionDir)..\..\..\Visual Studio 2010\Projects\testing\testing" /s /i /y</Command>
+      <Command>xcopy "$(SolutionDir)Release\wex.dll" "$(SolutionDir)testing\" /s /i /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Executable Release|Win32'">
