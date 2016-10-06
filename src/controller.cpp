@@ -81,7 +81,6 @@ void Controller::update()
 
 void Controller::startTextCapture()
 {
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 	_iscapturemode = true;
 }
 
@@ -93,7 +92,6 @@ void Controller::backspace()
 
 void Controller::stopTextCapture()
 {
-	SDL_EnableKeyRepeat(0,0);
 	_iscapturemode = false;
 }
 
@@ -102,8 +100,12 @@ bool Controller::isTextCaptureMode()
 	return _iscapturemode;
 }
 
-void Controller::insertCharacter(SDL_keysym keysym)
+void Controller::insertCharacter(SDL_Keysym keysym)
 {
+	/*
+
+	DEPRECATED.  GOTTA FIX THIS
+
 	char character = keysym.unicode & 0x7F;
 
 	if(character >= 32 && character <= 127)
@@ -113,6 +115,7 @@ void Controller::insertCharacter(SDL_keysym keysym)
 		std::string old = _capturedtext;
 		_capturedtext = old.substr(0,old.length()-1);
 	}
+	*/
 }
 
 std::string Controller::getCapturedText()

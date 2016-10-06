@@ -1,12 +1,10 @@
 #pragma once
 
-#include "begincode.h"
-
 #include <sstream>
 #include <string>
 #include <iostream>
 #include <map>
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #include "vec.h"
 
 using wex::Point2i;
@@ -26,7 +24,7 @@ struct Keydata
 };
 
 
-class WEXAPI Controller
+class Controller
 {
 private:
 	Point2i _prevmousepos;
@@ -56,12 +54,10 @@ public:
 	void update();
 	bool isTextCaptureMode();
 	void pasteClipboard();
-	void insertCharacter(SDL_keysym keysym);
+	void insertCharacter(SDL_Keysym keysym);
 	void stopTextCapture();
 	void startTextCapture();
 	void setKeyRepeat(bool v);
 	std::string getCapturedText();
 	Controller();
 };
-
-#include "closecode.h"

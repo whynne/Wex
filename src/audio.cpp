@@ -1,3 +1,5 @@
+/*
+
 #include "audio.h"
 
 using namespace wex;
@@ -57,9 +59,7 @@ SoundManager* SoundManager::Instance()
 void audio::init()
 {
   // Initialize the OpenAL library
-  alutInit(0,0);
   alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
-  std::cout << alutGetErrorString(alutGetError()) << std::endl;
 }
 
 AudioBuffer::AudioBuffer()
@@ -176,3 +176,4 @@ void audio::Source::setPosition(Point3f position)
 	alSource3f(id,AL_POSITION,position.x,position.y,position.z);
 }
 
+*/

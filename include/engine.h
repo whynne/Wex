@@ -1,6 +1,5 @@
-#pragma once
-
-#include "begincode.h"
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #define NO_SDL_GLEXT
 
@@ -10,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-#include "SDL\SDL.h"
+#include "SDL2/SDL.h"
 #include "graphics.h"
 #include "physics.h"
 #include "audio.h"
@@ -47,13 +46,13 @@ namespace wex
 		bool running;
 	    SDL_Event event;
 	    Timer fps;
-		static Controller controller;
 		vector<EngineState*> states;
 	    GameEngine();
         GameEngine&  operator=(GameEngine const&){return *this;};
 
 	public:
 		static GameEngine* Instance();
+		static Controller controller;
 		void run();
 		bool isRunning();
 		bool init();
@@ -80,11 +79,5 @@ namespace wex
 		virtual void draw() = 0;
 	};
 }
-	
-#include "closecode.h"
-	
-	
-	
-	
-	
 
+#endif

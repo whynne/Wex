@@ -23,18 +23,17 @@
 // IN THE SOFTWARE.
 // ============================================================================
 
-#pragma once
-
-#include "begincode.h"
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
 
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>C
+#include <map>
 #include <list>
 #include <assert.h>
 #include <fstream>
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #include "opengl.h"
 #include "timer.h" 
 #include "vec.h"
@@ -74,65 +73,68 @@ namespace wex
 		class Polygon;
 		class Quad;
 	
-	    bool Init();
+		bool Init();
 	
+		extern SDL_GLContext		glcontext;
+		extern SDL_Window*			window;
+		
 		extern map<string,Texture*>       textures;
-	    extern map<string,ShaderProgram*>  shaders;
+		extern map<string,ShaderProgram*>  shaders;
 	
 	
-	    enum imageformat
-	    {
-	        TYPE_TGA,
-	        TYPE_RAW
-	    };    
+		enum imageformat
+		{
+			TYPE_TGA,
+			TYPE_RAW
+		};    
 	
-	    typedef Point2f TexCoord;
+		typedef Point2f TexCoord;
 	
-	    struct WEXAPI SpriteFrame
-	    {
-	        TexCoord texcoords[4];
-	        float height;
-	        float width;
+		struct SpriteFrame
+		{
+			TexCoord texcoords[4];
+			float height;
+			float width;
 			SpriteFrame(float height,float width,Texture* texture,Point2f topleft);
 			SpriteFrame();
-	    };
+		};
 	
-	    struct WEXAPI ColorRGBA
-	    {
-	        GLfloat _r;
-	        GLfloat _g;
-	        GLfloat _b;
-	        GLfloat _a;
-	        ColorRGBA();
-	        ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
-	    };
+		struct ColorRGBA
+		{
+			GLfloat _r;
+			GLfloat _g;
+			GLfloat _b;
+			GLfloat _a;
+			ColorRGBA();
+			ColorRGBA(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+		};
 	
-	    class WEXAPI Texture
-	    {
+		class Texture
+		{
 		protected:
-	        GLuint texid;
-	        float height;
-	        float width;
-	    public:
-	        GLuint getHeight();
-	        GLuint getWidth();
-	        GLuint getTexId();
-	        void createEmptyTexture(int height,int width);
-	        bool loadUncompressedTGA(const char *filename);
-	        Texture();
+			GLuint texid;
+			float height;
+			float width;
+		public:
+			GLuint getHeight();
+			GLuint getWidth();
+			GLuint getTexId();
+			void createEmptyTexture(int height,int width);
+			bool loadUncompressedTGA(const char *filename);
+			Texture();
 	
-	    };
+		};
 	
-	    class WEXAPI SpriteSheet : public Texture 
-	    {
-	    private:
-	      map<string,vector<SpriteFrame>> sequences;
-	    public:
-	      unsigned int getSequenceLength(string sequence);
-	      void addFrame(string sequence,SpriteFrame frame);
-	      SpriteFrame getFrame(string sequence,unsigned int framenum);
-	      SpriteSheet();
-	    };
+		class SpriteSheet : public Texture 
+		{
+		private:
+		  map<string,vector<SpriteFrame> > sequences;
+		public:
+		  unsigned int getSequenceLength(string sequence);
+		  void addFrame(string sequence,SpriteFrame frame);
+		  SpriteFrame getFrame(string sequence,unsigned int framenum);
+		  SpriteSheet();
+		};
 	
 		struct y_compare {
 			bool operator() (const Point2f& lhs, const Point2f rhs) const{
@@ -143,92 +145,92 @@ namespace wex
 		//Note: verts must be ordered for drawing.  Will implement
 		//triangulator later
 	
-		class WEXAPI Polygon
+		class Polygon
 		{
 		public:
-	        std::list<Point2f> verts;
-	        ColorRGBA          color;
+			std::list<Point2f> verts;
+			ColorRGBA          color;
 		public:
 			void addVertex(Point2f vert);
-	        Polygon();
+			Polygon();
 		};
 	
-	    class WEXAPI Quad
-	    {
+		class Quad
+		{
 		public:
-	        Point2f        topleft;
+			Point2f        topleft;
 			Point2f        topright;
 			Point2f        bottomright;
 			Point2f        bottomleft;
 			Point3f        midpoint;
-	        ColorRGBA      color;
-	    public:
-	        ColorRGBA     getColor();
-	        void          setColor(ColorRGBA color);
+			ColorRGBA      color;
+		public:
+			ColorRGBA     getColor();
+			void          setColor(ColorRGBA color);
 			float         getHeight(){return bottomright.y;};
 			void          setHeight(float height);
 			float         getWidth(){return topright.x;};
 			void          setWidth(float width);
-	        inline Point3f getMidPoint();
+			inline Point3f getMidPoint();
 	
-	        Quad();
-	        Quad(double height,double width,ColorRGBA color);
-	    };
+			Quad();
+			Quad(double height,double width,ColorRGBA color);
+		};
 	
-	    class WEXAPI Sprite : public Quad
-	    {
-	    private:
-	      Point3f      offset;
-	      string       sequence;
-	      unsigned int sequencelength;
-	      double       frametime;
-	      double       accumulator;
-	      bool         playing;
-	      unsigned int frame;
-	      SpriteSheet *targetspritesheet;
+		class Sprite : public Quad
+		{
+		private:
+		  Point3f      offset;
+		  string       sequence;
+		  unsigned int sequencelength;
+		  double       frametime;
+		  double       accumulator;
+		  bool         playing;
+		  unsigned int frame;
+		  SpriteSheet *targetspritesheet;
 	
-	    public:
-	      Sprite();
+		public:
+		  Sprite();
 		  ~Sprite();
 		  Sprite(float height,float width);
 	
 		  int           getTexHandle(){return targetspritesheet->getTexId();};
-	      SpriteSheet*  getSpriteSheet();
-	      void          setSpriteSheet(string name);
+		  SpriteSheet*  getSpriteSheet();
+		  void          setSpriteSheet(string name);
 		  void          setSpriteSheet(SpriteSheet* spritesheet);
-	      SpriteFrame   getSpriteFrame();
-	      void          setSpriteFrame(unsigned int frame);
-	      Point3f       getOffset();
-	      void          setOffset(Point3f offset);
+		  SpriteFrame   getSpriteFrame();
+		  void          setSpriteFrame(unsigned int frame);
+		  Point3f       getOffset();
+		  void          setOffset(Point3f offset);
 	
-	      void play(double delta);
-	      void playOnce();
-	      void stop();
-	      void rewind();
+		  void play(double delta);
+		  void playOnce();
+		  void stop();
+		  void rewind();
 		  void setWidth(int width);
 		  void setHeight(int height);
-	      void changeSequence(string sequence);
-	      void changeSpriteSheet(SpriteSheet* newsheet);
+		  void changeSequence(string sequence);
+		  void changeSpriteSheet(SpriteSheet* newsheet);
 		  void changeSpriteSheet(const char* name);
-	      void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
-	    };
+		  void changeSpriteSheetNoRewind(SpriteSheet *newsheet);
+		};
 	
-	    class WEXAPI TextureFont : public SpriteSheet
-	    {
-	    private:
+		class TextureFont : public SpriteSheet
+		{
+		private:
 			int charheight;
 			int charwidth;
-	        SpriteFrame glyphs[256];
-	    public:
+			SpriteFrame glyphs[256];
+		public:
 			SpriteFrame getFrame(int framenum);
-	        void buildFont(Texture& texture);      // generates font
-	        TextureFont();                          // default constructor
-	        TextureFont(const char *filename,int height,int width);          // generates font on construction
+			void buildFont(Texture& texture);      // generates font
+			TextureFont();                          // default constructor
+			TextureFont(const char *filename,int height,int width);          // generates font on construction
 			int getCharHeight(){return charheight;};
 			int getCharWidth(){return charwidth;};
-	    };
+		};
 	
-		class WEXAPI Glyph : public Quad
+		class Glyph : public Quad
 		{
 		private:
 			char character;
@@ -241,14 +243,14 @@ namespace wex
 			Glyph(float height,float width);
 		};
 	
-	    struct WEXAPI VertexData
-	    {
-	        GLfloat x,y,z;
-	        GLfloat u,v;
-	        GLfloat r,g,b,a;
-	    };
+		struct VertexData
+		{
+			GLfloat x,y,z;
+			GLfloat u,v;
+			GLfloat r,g,b,a;
+		};
 	
-		struct WEXAPI Vertex{
+		struct Vertex{
 			Point3f  point;
 			TexCoord texcoord;
 			ColorRGBA color;
@@ -261,158 +263,159 @@ namespace wex
 			Vertex         vertexbuffer[BUFFER_SIZE];	
 			GLint          bufferpos;
 		public:   
-	        inline void addToBuffer(Polygon polygon, Point3d position,double xscale,double yscale,double rotate);
+			inline void addToBuffer(Polygon polygon, Point3d position,double xscale,double yscale,double rotate);
 			inline void addToBuffer(Polygon polygon, Point3d position);
-	        Vertex*     getVertbuffer();
-	        GLint       getBufferLength();
-	        int         remainingSpace();
-	        void        reset();
+			Vertex*     getVertbuffer();
+			GLint       getBufferLength();
+			int         remainingSpace();
+			void        reset();
 			PolygonBatch();
 		};
 	
-	    class SpriteBatch
-	    {
-	    private:
+		class SpriteBatch
+		{
+		private:
 			vector<Sprite> sprites;
 			Vertex     vertexbuffer[BUFFER_SIZE];		
-	        GLint      bufferpos;
-	    
-	    public:
-	    
-	        inline void addToBuffer(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
-	        inline void addToBuffer(Quad quad,Point3f position,double xscale,double yscale,double rotate);
+			GLint      bufferpos;
+		
+		public:
+		
+			inline void addToBuffer(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
+			inline void addToBuffer(Quad quad,Point3f position,double xscale,double yscale,double rotate);
 			inline void addToBuffer(Glyph glyph,Point3f position);
+			inline void addToBuffer(Glyph glyph,Point3f position, double xscale, double yscale, double rotate);
 			inline void addToBuffer(Sprite sprite,Point3f position);
-	        Vertex*    getVertbuffer();
-	        GLint      getBufferLength();
-	        bool       isFull();
-	        void       reset();
-	        
-	        SpriteBatch();
-	    };
+			Vertex*    getVertbuffer();
+			GLint      getBufferLength();
+			bool       isFull();
+			void       reset();
+			
+			SpriteBatch();
+		};
 	
 	
 	
-	    class WEXAPI Shader {
-	        GLchar* source;
-	        unsigned int handle;
-	    public:
-	        void loadFromFile(char* filename,GLenum type);
-	        Shader();
-	        Shader(char* filename,GLenum type);
-	        ~Shader();
-	        inline unsigned int GetHandle() const;
-	    };
+		class Shader {
+			GLchar* source;
+			unsigned int handle;
+		public:
+			void loadFromFile(string filename,GLenum type);
+			Shader();
+			Shader(string filename,GLenum type);
+			~Shader();
+			inline unsigned int GetHandle() const;
+		};
 	
-	    inline unsigned int Shader::GetHandle() const {
-	        return handle;
-	    }
+		inline unsigned int Shader::GetHandle() const {
+			return handle;
+		}
 	
-	    extern const char* SAMPLER_NAME;
-	    extern const char* TFS_TEXCOORD;
-	    extern const char* TFS_COLOR;
+		extern const char* SAMPLER_NAME;
+		extern const char* TFS_TEXCOORD;
+		extern const char* TFS_COLOR;
 	
-	    extern const char* TVS_PROJECTION_MAT;
-	    extern const char* TVS_MODEL_VIEW_MAT;
-	    extern const int   VERTEX_ATTRIBUTE_ID;
-	    extern const char* VERTEX_ATTRIBUTE_NAME;
-	    extern const int   TEXCOORD_ATTRIBUTE_ID;
-	    extern const char* TEXCOORD_ATTRIBUTE_NAME;
-	    extern const int   COLOR_ATTRIBUTE_ID;
-	    extern const char* COLOR_ATTRIBUTE_NAME;
+		extern const char* TVS_PROJECTION_MAT;
+		extern const char* TVS_MODEL_VIEW_MAT;
+		extern const int   VERTEX_ATTRIBUTE_ID;
+		extern const char* VERTEX_ATTRIBUTE_NAME;
+		extern const int   TEXCOORD_ATTRIBUTE_ID;
+		extern const char* TEXCOORD_ATTRIBUTE_NAME;
+		extern const int   COLOR_ATTRIBUTE_ID;
+		extern const char* COLOR_ATTRIBUTE_NAME;
 	
 	
-	    class WEXAPI ShaderProgram {
-	        unsigned int handle;
-	        Shader* vs;
-	        Shader* fs;
-	        int width, height;
-	        unsigned int tex_handle;
-	        unsigned int shader_tex_handle;
-	        unsigned int shader_mat_proj_handle;
-	        unsigned int shader_mat_mv_handle;
-	    public:
-	        ShaderProgram(char* vsfilename,char* fsfilename);
-	        ShaderProgram();
-	        ~ShaderProgram();
-	        void enable(bool state);
-	        inline unsigned int getHandle() const;
-	        inline void setTexture(unsigned int tx_handle);
-	        inline void setOutputSize(int width, int height);
+		class ShaderProgram {
+			unsigned int handle;
+			Shader* vs;
+			Shader* fs;
+			int width, height;
+			unsigned int tex_handle;
+			unsigned int shader_tex_handle;
+			unsigned int shader_mat_proj_handle;
+			unsigned int shader_mat_mv_handle;
+		public:
+			ShaderProgram(string vsfilename,string fsfilename);
+			ShaderProgram();
+			~ShaderProgram();
+			void enable(bool state);
+			inline unsigned int getHandle() const;
+			inline void setTexture(unsigned int tx_handle);
+			inline void setOutputSize(int width, int height);
 			void zoom(float factor);
-	    private:
-	        void getUniformHandles();
-	        void bindAttributes();
-	    };
+		private:
+			void getUniformHandles();
+			void bindAttributes();
+		};
 	
-	    // Inline functions
+		// Inline functions
 	
-	    inline unsigned int ShaderProgram::getHandle() const {
-	        return handle;
-	    }
+		inline unsigned int ShaderProgram::getHandle() const {
+			return handle;
+		}
 	
-	    inline void ShaderProgram::setTexture(unsigned int handle) {
-	        tex_handle = handle;
-	    }
+		inline void ShaderProgram::setTexture(unsigned int handle) {
+			tex_handle = handle;
+		}
 	
-	    inline void ShaderProgram::setOutputSize(int width, int height) {
-	        this->width  = width;
-	        this->height = height;
-	    }
+		inline void ShaderProgram::setOutputSize(int width, int height) {
+			this->width  = width;
+			this->height = height;
+		}
 	
-		enum WEXAPI RenderMode
+		enum RenderMode
 		{
 			WEX_VERTEX_BUFFER_OBJECTS,
 			WEX_VERTEX_ARRAYS
 		};
 	
-	    class Renderer
-	    {
-	    private:
+		class Renderer
+		{
+		private:
 			int currenttex;
 			bool changeTexHandle(int handle);
 	
-	        Renderer();
-	        Renderer&         operator=(Renderer const&){return *this;};
+			Renderer();
+			Renderer&         operator=(Renderer const&){return *this;};
 	
-	        Point3f          view;
-			PolygonBatch     polybatch;
-	        SpriteBatch      spritebatch;
-	        static Renderer* instance;
-			RenderMode       rendermode;
+			Point3f				view;
+			PolygonBatch		polybatch;
+			SpriteBatch			spritebatch;
+			static Renderer*	instance;
+			RenderMode			rendermode;
 	
-	        GLuint           vbovertex;
-	        GLuint           vbotexture;
-	        GLuint           vbocolor;
+			GLuint				vbovertex;
+			GLuint				vbotexture;
+			GLuint				vbocolor;
 	
-	    public:
-	        static  Renderer* Instance();
+		public:
+			static  Renderer* Instance();
 			void    setRenderMode(RenderMode mode);
 			void    zoom(float factor);
-	        void    setCamera(Point3f cameraposition);
-	        void    moveCameraRelative(Point3f movementvector);
-	        void    moveCameraTowards(Point3f position);
+			void    setCamera(Point3f cameraposition);
+			void    moveCameraRelative(Point3f movementvector);
+			void    moveCameraTowards(Point3f position);
 			void    setDefaultRendering(bool state);
-	        void    drawSprite(Sprite sprite,Point3f position);
-	        void    drawSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
-	        void    drawFixedSprite(Sprite sprite,Point3f position);
-	        void    drawFixedSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
-	        void    drawFixedGlyph(Glyph glyph,Point3f position);
+			void    drawSprite(Sprite sprite,Point3f position);
+			void    drawSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
+			void    drawFixedSprite(Sprite sprite,Point3f position);
+			void    drawFixedSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate);
+			void    drawFixedGlyph(Glyph glyph, Point3f position, GLfloat xscale, GLfloat yscale, GLfloat rotate);
 			void    drawQuad(Quad quad,Point3f position,double xscale,double yscale,double rotate);
 			void    changeTexture(int texhandle);
 			void    changeTexture(const char* name);
 			void    changeShader(const char* name);
 	
-	        void    drawText(const char* fontname,const char* text, Point3f position,ColorRGBA color,GLfloat space);                   //Draws white text.
-	        void    drawFormattedText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength);
+			void    drawText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space, GLfloat scale);               //Draws white text.
+			void    drawFormattedText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space, GLfloat scale, int linelength);
 			void    drawBuffer();
-	    };
+		};
 	
-		void WEXAPI printShaderList();
-		void WEXAPI printTextureList();
+		void printShaderList();
+		void printTextureList();
 
-		void WEXAPI loadAssets();
+		void loadAssets();
 	}
 }
 
-#include "closecode.h"
+#endif

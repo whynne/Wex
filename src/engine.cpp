@@ -24,49 +24,47 @@ GameEngine::GameEngine()
 
 bool GameEngine::init()
 {  
-     AllocConsole();
-     freopen( "CON", "w", stdout ); 
-    //Game initializations
-    srand(time(NULL));
-    running = true;	
+	//Game initializations
+	srand(time(NULL));
+	running = true;	
 	TrigLookUp::calculateTrigValues();
 
 	
-    //SDL/OpenGL initializations
+	//SDL/OpenGL initializations
 	if(!graphics::Init()){
 		return false;
 	}
 	cout << "Graphics successfully initialized!" << endl;
-	glClearColor(0,1,0,1);
+	glClearColor(0,0,0,1);
 
 	//OpenAL init
-	audio::init();
-
-    return true;
+	//audio::init();
+	counter.start();
+	return true;
 }
 
 void GameEngine::handleEvents()
 {
 	//Pump and catch basic events
-    while(SDL_PollEvent(&event))
-    {
-        if (event.type == SDL_QUIT)
-            running = false;
-        else if (event.type == SDL_KEYDOWN)
-        {
-            controller.pressKey(event.key.keysym.sym);
+	while(SDL_PollEvent(&event))
+	{
+		if (event.type == SDL_QUIT)
+			running = false;
+		else if (event.type == SDL_KEYDOWN)
+		{
+			controller.pressKey(event.key.keysym.sym);
 
-            if(controller.isTextCaptureMode())
-            {
-                controller.insertCharacter(event.key.keysym);
-            }
-        }
-        else if (event.type == SDL_KEYUP)
-            controller.releaseKey(event.key.keysym.sym);	
-        else if ( event.type == SDL_MOUSEBUTTONDOWN ) 
-        {
-        }
-    }
+			if(controller.isTextCaptureMode())
+			{
+				controller.insertCharacter(event.key.keysym);
+			}
+		}
+		else if (event.type == SDL_KEYUP)
+			controller.releaseKey(event.key.keysym.sym);	
+		else if ( event.type == SDL_MOUSEBUTTONDOWN ) 
+		{
+		}
+	}
 	/*
 	
 	if(controller.keyPressed(SDLK_RETURN) && controller.isTextCaptureMode())
@@ -109,9 +107,7 @@ void GameEngine::draw(double t,double dt)
 	}
 	*/
 	states.back()->draw();
-    
-	SDL_GL_SwapBuffers();
-  
+	SDL_GL_SwapWindow(window);
 }
 
 void GameEngine::run()
@@ -120,39 +116,40 @@ void GameEngine::run()
 	while(this->isRunning())
 	{
 		if(states.back()==0)
+		{
+			cout << "[WEX]: No state to run.  Shutting down..." << endl;
 			return; // We have no state to run.  Return prematurely.
+		}
 
 		if(counter.getTimeInSeconds() > 1.0)
 		{
 			counter.start();
-			cout << dps << "draws this seconds - "  << ups << " updates this second" << endl;
+			cout << "[WEX]: " << dps << " draws this second - "  << ups << " updates this second" << endl;
 			resetCounters();
 		}
 
 		newtime = frametimer.getTimeInSeconds();
 		frametime = newtime - currenttime;
 		currenttime = newtime;
-		
+
 		if (frametime>0.25f)
 			frametime = 0.25f;
 
 		accumulator += frametime;
 		eventtime += frametime;
 
-		if(eventtime >= (1.0/30.0))
-		{
-			eventtime = 0.0;
-			handleEvents();
-		}
+		handleEvents();
+
 		while (accumulator >= dt)
 		{
-		   update(t,dt);
-		   ups+=1;
-		   accumulator -= dt;            
-		   t+=dt;                        
+			update(t,dt);
+			ups+=1;
+			accumulator -= dt;            
+			t+=dt;                        
 		}
-		
+
 		draw(t,dt);
+
 		dps+=1;
 	}
 }
@@ -164,7 +161,7 @@ void GameEngine::update(double t,double dt)
 
 bool GameEngine::isRunning()
 {
-    return running;
+	return running;
 }
 
 void GameEngine::pushState(EngineState* state)

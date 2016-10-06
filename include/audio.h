@@ -1,8 +1,4 @@
-
-
 #pragma once
-
-#include "begincode.h"
 
 #include "vec.h"
 #include "AL/al.h"
@@ -17,6 +13,7 @@
 #define NUM_SOURCES 31
 #define AUDIO_BUFFER_SIZE   32768     // 32 KB buffers
 #define soundmanager wex::audio::SoundManager::Instance()
+/*
 
 using std::string;
 
@@ -30,7 +27,7 @@ namespace wex
 		class Source;
 
 		
-		class WEXAPI SoundManager
+		class SoundManager
 		{
 		private:
 			static SoundManager* instance;
@@ -45,7 +42,7 @@ namespace wex
 			static SoundManager* Instance();
 		};
 
-		class WEXAPI Source
+		class Source
 		{
 			ALuint id;
 		public:
@@ -59,7 +56,7 @@ namespace wex
 			bool   isPaused();
 		};
 		
-		class WEXAPI AudioBuffer
+		class AudioBuffer
 		{
 		    ALuint id;
 			ALenum format;
@@ -72,5 +69,4 @@ namespace wex
 		};
 	}
 }
-
-#include "closecode.h"
+*/

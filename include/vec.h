@@ -1,8 +1,6 @@
 #ifndef H_VEC
 #define H_VEC
 
-#include "begincode.h"
-
 #include "triglookup.h"
 #include <math.h>
 
@@ -12,6 +10,31 @@ const double pi = atan(1.0)*4;
 
 namespace wex
 {
+
+template <class T> class Vec2;
+template <class T> class Vec3;
+
+typedef Vec3<int>    Point3i;
+typedef Vec3<double> Point3d;
+typedef Vec3<float>  Point3f;
+typedef Vec2<int>    Point2i;
+typedef Vec2<double> Point2d;
+typedef Vec2<float>  Point2f;
+
+typedef Vec3<int>    Vector3i;
+typedef Vec3<double> Vector3d;
+typedef Vec3<float>  Vector3f;
+typedef Vec2<int>    Vector2i;
+typedef Vec2<double> Vector2d;
+typedef Vec2<float>  Vector2f;
+
+typedef Vec3<int>    Vertex3i;
+typedef Vec3<double> Vertex3d;
+typedef Vec3<float>  Vertex3f;
+typedef Vec2<int>    Vertex2i;
+typedef Vec2<double> Vertex2d;
+typedef Vec2<float>  Vertex2f;
+
 template <class T>
 class Vec2
 {
@@ -22,21 +45,19 @@ public:
 	Vec2();
 	Vec2(T x,T y);
 
-	friend Vec2<T> rotate(Vec2<T> pivot,float theta)
+	void rotate(Vec2<T> pivot,float theta)
 	{
 		Vec2<T> result;
-		result.x = pivot.x + (x - pivot.x) * cos(theta) - (y - pivot.y) * sin(theta);
-		result.y = pivot.y + (x - pivot.x) * sin(theta) - (y - pivot.y) * cos(theta);
+		result.x = pivot.x + (this->x - pivot.x) * cos(theta) - (this->y - pivot.y) * sin(theta);
+		result.y = pivot.y + (this->x - pivot.x) * sin(theta) - (this->y - pivot.y) * cos(theta);
 	}
 	friend bool operator==(const Vec2<T> &op1,const Vec2<T> &op2)
-    {	
-		std::cout << "It's happening" << endl;
+    {
 		return (op1.x == op2.x && op1.y == op2.y);
     };
 	
 	friend bool operator!=(const Vec2<T> &op1,const Vec2<T> &op2)
-    {	
-		std::cout << "It's not happening" << endl;
+    {
 		return (op1.x != op2.x || op1.y != op2.y);
     };
 
@@ -89,8 +110,7 @@ public:
     	return Vec2<T>(op1 - op2.x,op1 - op2.y);
     };
 	friend bool operator>(const Vec2<T> &op1,const Vec2<T> &op2)
-    {	
-		std::cout << "It's greater happening" << endl;
+    {
 		return op1.x > op2.x && op1.y > op2.y;
     };
 	friend bool operator<(const Vec2<T> &op1,const Vec2<T> &op2)
@@ -138,8 +158,8 @@ public:
 		Point3d result;
 
 
-		result.x = pivot.x + (x - pivot.x) * lcos(theta) - (y - pivot.y) * lsin(theta);
-		result.y = pivot.y + (x - pivot.x) * lsin(theta) + (y - pivot.y) * lcos(theta);
+		result.x = pivot.x + (this->x - pivot.x) * cos(theta) - (this->y - pivot.y) * sin(theta);
+		result.y = pivot.y + (this->x - pivot.x) * sin(theta) + (this->y - pivot.y) * cos(theta);
 
 
 		x = result.x;
@@ -248,28 +268,6 @@ T Vec3<T>::normal()
 }
 
 
-typedef Vec3<int>    Point3i;
-typedef Vec3<double> Point3d;
-typedef Vec3<float>  Point3f;
-typedef Vec2<int>    Point2i;
-typedef Vec2<double> Point2d;
-typedef Vec2<float>  Point2f;
-
-typedef Vec3<int>    Vector3i;
-typedef Vec3<double> Vector3d;
-typedef Vec3<float>  Vector3f;
-typedef Vec2<int>    Vector2i;
-typedef Vec2<double> Vector2d;
-typedef Vec2<float>  Vector2f;
-
-typedef Vec3<int>    Vertex3i;
-typedef Vec3<double> Vertex3d;
-typedef Vec3<float>  Vertex3f;
-typedef Vec2<int>    Vertex2i;
-typedef Vec2<double> Vertex2d;
-typedef Vec2<float>  Vertex2f;
-
 }
-#include "closecode.h"
 
 #endif

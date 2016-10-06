@@ -5,6 +5,9 @@
 
 using namespace wex::graphics;
 
+SDL_GLContext		wex::graphics::glcontext;
+SDL_Window*			wex::graphics::window;
+
 map<string,Texture*>       wex::graphics::textures;
 map<string,ShaderProgram*>  wex::graphics::shaders;
 
@@ -53,6 +56,7 @@ TextureFont::TextureFont(const char* filename,int height,int width)
 	characterframe.width = (float)width/16.0;
 	charheight = characterframe.height;
 	charwidth = characterframe.width;
+	cout << charheight << "x" << charwidth << endl;
 
 	for(float row = 0; row < 16; row+=1.0)
 	{
@@ -467,6 +471,11 @@ PolygonBatch::PolygonBatch()
 
 inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position)
 {
+	addToBuffer(glyph,position, 1.0, 1.0, 0.0);
+}
+
+inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position, double xscale, double yscale, double rotate)
+{
 	
 	//Get initial points
 	vertexbuffer[bufferpos+0].point.x = 0;
@@ -485,7 +494,18 @@ inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position)
 	vertexbuffer[bufferpos+3].point.y = glyph.bottomleft.y;
 	vertexbuffer[bufferpos+3].point.z = 0;
 
+	//Scale
+	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+2].point = vertexbuffer[bufferpos+2].point * Point3f(xscale,yscale,0);
+	vertexbuffer[bufferpos+3].point = vertexbuffer[bufferpos+3].point * Point3f(xscale,yscale,0);
 	
+	
+	//Rotate about center
+	vertexbuffer[bufferpos+0].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+1].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+2].point.rotate(Point3f(0,0,0),rotate);
+	vertexbuffer[bufferpos+3].point.rotate(Point3f(0,0,0),rotate);
 	
 	vertexbuffer[bufferpos+0].point = vertexbuffer[bufferpos+0].point - glyph.midpoint;
 	vertexbuffer[bufferpos+1].point = vertexbuffer[bufferpos+1].point - glyph.midpoint;
@@ -510,7 +530,6 @@ inline void SpriteBatch::addToBuffer(Glyph glyph,Point3f position)
 	vertexbuffer[bufferpos+1].color = glyph.getColor();
 	vertexbuffer[bufferpos+2].color = glyph.getColor();
 	vertexbuffer[bufferpos+3].color = glyph.getColor();
-	
 	
 	bufferpos += 4;
 }
@@ -752,7 +771,7 @@ const int   wex::graphics::COLOR_ATTRIBUTE_ID   = 0;
 const char* wex::graphics::COLOR_ATTRIBUTE_NAME = "vs_Color";
 
 
-Shader::Shader(char* filename,GLenum type) 
+Shader::Shader(string filename,GLenum type) 
 	{
 		this->loadFromFile(filename,type);
 	}
@@ -762,7 +781,7 @@ Shader::Shader()
 
 	}
 
-void Shader::loadFromFile(char* filename,GLenum type)
+void Shader::loadFromFile(string filename,GLenum type)
 	{
 		std::ifstream file;
 		unsigned int sourcelength;
@@ -820,7 +839,7 @@ ShaderProgram::ShaderProgram()
 	{
 	}
 
-ShaderProgram::ShaderProgram(char* vsfilename,char* fsfilename) {
+ShaderProgram::ShaderProgram(string vsfilename,string fsfilename) {
 		GLint linked = 100;
 		vs = new Shader(vsfilename,GL_VERTEX_SHADER);
 		fs = new Shader(fsfilename,GL_FRAGMENT_SHADER);
@@ -908,19 +927,25 @@ bool wex::graphics::Init()
         else
           cout << "SDL: Still not initialized!" << endl;
     }
-    SDL_WM_SetCaption( "Dragon Dildos 2: The Dickening", NULL );
 
-    if( SDL_SetVideoMode( SCREEN_WIDTH*1, SCREEN_HEIGHT*1, SCREEN_BPP, SDL_OPENGL) == NULL )	// Set window properties, OpenGL is passed here
+    cout << "[SDL]: Initialized." << endl;
+
+    if( (window = SDL_CreateWindow("Wex", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL )) == 0 )
     {
+    	cout << window << endl;
+    	cout << "[SDL]: Failed to create window." << endl;
 		cout << SDL_GetError() << endl;
         return false;
     }
-    
-    cout << "SDL: Video mode set!" << endl;
 
-    SDL_EnableUNICODE(1);
+    cout << "[SDL]: Window created." << endl;
+
+    glcontext = SDL_GL_CreateContext(window);
+    
+    cout << "[SDL]: Video mode set!" << endl;
+
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );				// Activate double buffer for buffer switching
-    SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );				// Activate swap control, also for buffer switching
+    SDL_GL_SetSwapInterval(0);									// Activate swap control, also for buffer switching
 	
 	glEnable(GL_TEXTURE_2D);
 	
@@ -928,7 +953,7 @@ bool wex::graphics::Init()
 
                                                      // Set clear color.  This is what the buffer gets filled with when we call glClear
     glClear(GL_COLOR_BUFFER_BIT);
-    SDL_GL_SwapBuffers();
+    //SDL_GL_SwapBuffers();
     glEnable(GL_DEPTH_TEST);
     glDepthMask(true);
     glDepthFunc(GL_LEQUAL);
@@ -1122,7 +1147,7 @@ void Renderer::drawFixedSprite(Sprite sprite,Point3f position)
 	spritebatch.addToBuffer(sprite,position);
 }
 
-void Renderer::drawFixedGlyph(Glyph glyph,Point3f position)
+void Renderer::drawFixedGlyph(Glyph glyph, Point3f position, GLfloat xscale, GLfloat yscale, GLfloat rotate)
 {
 	if(spritebatch.isFull())
 	{
@@ -1130,7 +1155,7 @@ void Renderer::drawFixedGlyph(Glyph glyph,Point3f position)
 			spritebatch.reset();
 	}
 	changeTexHandle(glyph.getTexHandle());
-	spritebatch.addToBuffer(glyph,position);
+	spritebatch.addToBuffer(glyph,position,xscale,yscale,rotate);
 }
 
 void Renderer::drawFixedSprite(Sprite sprite,Point3f position,double xscale,double yscale,double rotate)
@@ -1187,7 +1212,7 @@ void Renderer::drawBuffer()
 	
 }
 
-void Renderer::drawText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space)
+void Renderer::drawText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space, GLfloat scale)
 {
 	
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
@@ -1200,12 +1225,11 @@ void Renderer::drawText(const char* fontname,const char* text,Point3f position,C
 	for(int i = 0; i < strlen(text); i++)
 	{
 		character.setGlyph(text[i]);
-        drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0));
+        drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0),scale,scale,0.0);
 	}
-	
 }
 
-void Renderer::drawFormattedText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space,int linelength)
+void Renderer::drawFormattedText(const char* fontname,const char* text,Point3f position,ColorRGBA color, GLfloat space, GLfloat scale, int linelength)
 {
 	//Determine how much of the text we can render properly on one line.
 	TextureFont* font = (TextureFont*)graphics::textures[fontname];
@@ -1217,7 +1241,7 @@ void Renderer::drawFormattedText(const char* fontname,const char* text,Point3f p
 	for(int i = 0; i < strlen(text); i+=1.0)
 	{
 		character.setGlyph(text[i]);
-        drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0));
+        drawFixedGlyph(character,Point3f(position.x+(((float)i)*space),position.y,0),scale,scale,0.0);
 	}
 	
 }

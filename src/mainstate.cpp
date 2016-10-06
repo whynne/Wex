@@ -1,5 +1,3 @@
-#include "mainstate.h"
-
 #define vpos(h) h*SCREEN_HEIGHT
 #define hpos(v) v*SCREEN_WIDTH
 

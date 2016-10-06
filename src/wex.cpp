@@ -38,12 +38,13 @@ void wex::changeShader(const char* name)
 
 void wex::drawText(const char* text, const Point3f& position,ColorRGBA color,GLfloat space)
 {
-	renderer->drawText("default font",text,position,ColorRGBA(1,1,1,1),8);
+	renderer->drawText("default font",text,position,ColorRGBA(1,1,1,1),8,1.0);
 }
 
 void wex::drawFormattedText(const char* fontname,const char* text,const Point3f& position,ColorRGBA color, GLfloat space,int linelength)
 {
 }
+/*
 
 void wex::loadSound(const char* filename)
 {
@@ -54,6 +55,7 @@ void wex::playSound(const char* filename)
 {
 	soundmanager->playSound(filename);
 }
+*/
 
 void wex::drawBuffer()
 {

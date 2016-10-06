@@ -213,7 +213,7 @@ void LSConsole::draw()
 	int i = 0;
 	for(StringDequeIt it = displaybuffer.end()-1;i<=rows-1;yoffset+=yspacing,i++)
 	{
-		renderer->drawText("uifont",it->c_str(),position+Point3f(0,yspacing*rows,0)+Point3f(16,-5,0)-Point3f(0,yoffset,0),this->color,xspacing);
+		renderer->drawText("uifont",it->c_str(),position+Point3f(0,yspacing*rows,0)+Point3f(16,-5,0)-Point3f(0,yoffset,0),this->color,xspacing,1.0);
 		if(it==displaybuffer.begin())
 			break;
 		it--;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "begincode.h"
-
 #include <set>
 #include "vec.h"
 namespace wex
@@ -10,10 +8,10 @@ namespace wex
 	{
 	
 		template<typename T>
-		std::set<Vec2<T>> convexHull2D(std::set<Vec2<T>> points)
+		std::set<Vec2<T> > convexHull2D(std::set<Vec2<T> > points)
 		{
-			std::set<Vec2<T>> resultset;
-			std::set<Vec2<T>>::iterator it = points.begin();
+			std::set<Vec2<T> > resultset;
+			typename std::set<Vec2<T> >::iterator it = points.begin();
 			Vec2<T> initpoint = *it;
 			Vec2<T> currentpoint;
 			float smallestangle = 0;
@@ -64,5 +62,3 @@ namespace wex
 		}
 	}
 }
-
-#include "closecode.h"

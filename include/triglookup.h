@@ -1,6 +1,6 @@
 #pragma once
 
-#define LOOKUP_SIZE 360
+#define LOOKUP_SIZE 5000
 #define PI2 2*3.141592f
 #include <math.h>
 #include <iostream>

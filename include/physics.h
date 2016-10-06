@@ -1,7 +1,5 @@
 #pragma once
 
-#include "begincode.h"
-
 #include "vec.h"
 
 using wex::Point3d;
@@ -9,7 +7,7 @@ using wex::Point3d;
 namespace physics
 {
 
-	struct  WEXAPI State
+	struct State
 	{
 		Point3d p; // position
 		Point3d v; // velocity
@@ -17,7 +15,7 @@ namespace physics
 		double m;
 	};
 	
-	struct WEXAPI Derivative
+	struct Derivative
 	{ 
 		Point3d dx; // derivative of position: velocity
 		Point3d dv; // derivative of velocity: acceleration
@@ -25,7 +23,7 @@ namespace physics
 	
 	State interpolate(const State &previous, const State &current, float alpha);
 	
-	class WEXAPI PhysState
+	class PhysState
 	{
 	public:
 		State state,prevstate;
@@ -42,5 +40,3 @@ namespace physics
 		PhysState(double p, double v);
 	};
 }
-
-#include "closecode.h"
