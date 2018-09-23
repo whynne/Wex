@@ -1,1 +1,1 @@
-Don't fucking look.  It's horrible.
+A basic engine using SDL for window management, OpenGL for rendering, and OpenAL for audio.  Provides a number of helpful objects and functions for quickly making games.  Simply run the MAKEfile
